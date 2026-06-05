@@ -1,0 +1,2702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>智能座舱语音 AI Agent 调研分享 · 动画讲解</title>
+<style>
+  /* ==================== 基础样式 ==================== */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --c-bg: #f7faff;
+    --c-bg2: #eaf2ff;
+    --c-primary: #2b6ee8;
+    --c-primary-dark: #1e4fb8;
+    --c-accent: #ff7a3d;
+    --c-accent-dark: #e55a1e;
+    --c-teal: #15bfa2;
+    --c-purple: #8b5cf6;
+    --c-pink: #ec4899;
+    --c-yellow: #f5b400;
+    --c-text: #1e2a44;
+    --c-text-soft: #5a6a85;
+    --c-card: #ffffff;
+    --c-border: #d9e3f3;
+    --shadow-sm: 0 4px 12px rgba(43, 110, 232, 0.08);
+    --shadow-md: 0 8px 24px rgba(43, 110, 232, 0.12);
+    --shadow-lg: 0 16px 48px rgba(43, 110, 232, 0.18);
+  }
+  html, body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: var(--c-bg);
+    color: var(--c-text);
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    font-size: 16px;
+  }
+
+  /* ==================== 主容器 ==================== */
+  .deck {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 48px 64px 90px 64px;
+    display: none;
+    flex-direction: column;
+    background: linear-gradient(135deg, #f7faff 0%, #ffffff 50%, #fff5ee 100%);
+    animation: slideIn 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .slide.active { display: flex; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ==================== 顶部页眉 ==================== */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--c-border);
+  }
+  .header .chapter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--c-primary);
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .header .chapter-tag .num {
+    background: var(--c-primary);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+  .header h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--c-text);
+    letter-spacing: 1px;
+  }
+  .header .page-no {
+    font-size: 13px;
+    color: var(--c-text-soft);
+    background: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ==================== 内容主体 ==================== */
+  .body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ==================== 导航条 ==================== */
+  .nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #ffffff;
+    border-top: 1px solid var(--c-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    z-index: 50;
+    box-shadow: 0 -4px 16px rgba(43, 110, 232, 0.06);
+  }
+  .nav .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--c-text-soft);
+  }
+  .nav .nav-mid {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+    justify-content: center;
+    flex-wrap: wrap;
+    overflow: hidden;
+    max-width: 50%;
+  }
+  .nav .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c-border);
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .nav .dot.active {
+    background: var(--c-accent);
+    width: 28px;
+    border-radius: 4px;
+  }
+  .nav .nav-right {
+    display: flex;
+    gap: 10px;
+  }
+  .btn {
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 1.5px solid var(--c-border);
+    background: #fff;
+    color: var(--c-text);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .btn:hover {
+    border-color: var(--c-primary);
+    color: var(--c-primary);
+    transform: translateY(-1px);
+  }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--c-accent), var(--c-accent-dark));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 122, 61, 0.3);
+  }
+  .btn.primary:hover { color: #fff; transform: translateY(-1px); }
+
+  /* ==================== 封面 ==================== */
+  .cover {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: radial-gradient(ellipse at top left, #ffe5d0 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, #cfe1ff 0%, transparent 50%),
+                linear-gradient(135deg, #f7faff 0%, #ffffff 100%);
+  }
+  .cover .badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(43, 110, 232, 0.1);
+    color: var(--c-primary);
+    border-radius: 20px;
+    font-size: 13px;
+    letter-spacing: 4px;
+    font-weight: 700;
+    margin-bottom: 28px;
+    animation: fadeInUp 0.8s ease;
+  }
+  .cover h1 {
+    font-size: 72px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-accent) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 4px;
+    margin-bottom: 24px;
+    line-height: 1.2;
+    animation: fadeInUp 0.9s ease;
+  }
+  .cover .subtitle {
+    font-size: 22px;
+    color: var(--c-text-soft);
+    letter-spacing: 6px;
+    margin-bottom: 60px;
+    animation: fadeInUp 1s ease;
+  }
+  .cover .pills {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 60px;
+    animation: fadeInUp 1.1s ease;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .cover .pill {
+    padding: 10px 22px;
+    border-radius: 24px;
+    background: #fff;
+    color: var(--c-primary);
+    font-weight: 600;
+    font-size: 15px;
+    box-shadow: var(--shadow-sm);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+  }
+  .cover .pill:hover { border-color: var(--c-primary); transform: translateY(-3px); }
+  .cover .meta {
+    color: var(--c-text-soft);
+    font-size: 14px;
+    letter-spacing: 2px;
+    animation: fadeInUp 1.2s ease;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ==================== 目录 ==================== */
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    flex: 1;
+    align-content: center;
+    padding: 40px 0;
+  }
+  .toc-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 20px;
+    box-shadow: var(--shadow-sm);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .slide.active .toc-card { animation: cardPop 0.6s ease forwards; }
+  .slide.active .toc-card:nth-child(1) { animation-delay: 0.1s; }
+  .slide.active .toc-card:nth-child(2) { animation-delay: 0.2s; }
+  .slide.active .toc-card:nth-child(3) { animation-delay: 0.3s; }
+  .slide.active .toc-card:nth-child(4) { animation-delay: 0.4s; }
+  .slide.active .toc-card:nth-child(5) { animation-delay: 0.5s; }
+  @keyframes cardPop {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .toc-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--c-accent);
+    box-shadow: var(--shadow-lg);
+  }
+  .toc-card .toc-num {
+    font-size: 48px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .toc-card .toc-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--c-text);
+    margin-bottom: 8px;
+  }
+  .toc-card .toc-desc {
+    font-size: 12px;
+    color: var(--c-text-soft);
+    line-height: 1.6;
+  }
+
+  /* ==================== 通用卡片 ==================== */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px 22px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--c-border);
+    transition: all 0.4s ease;
+  }
+  .card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .card-h {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-h .icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: #fff;
+  }
+
+  /* ==================== 政策页 ==================== */
+  .policy-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    overflow: auto;
+  }
+  .policy-row {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 22px;
+    box-shadow: var(--shadow-sm);
+    border-left: 5px solid var(--c-primary);
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  .slide.active .policy-row { animation: slideRight 0.6s ease forwards; }
+  .slide.active .policy-row:nth-child(1) { animation-delay: 0.15s; }
+  .slide.active .policy-row:nth-child(2) { animation-delay: 0.3s; border-left-color: var(--c-accent); }
+  .slide.active .policy-row:nth-child(3) { animation-delay: 0.45s; border-left-color: var(--c-teal); }
+  .slide.active .policy-row:nth-child(4) { animation-delay: 0.6s; border-left-color: var(--c-purple); background: linear-gradient(135deg, #fff7e6, #ffe5d0); }
+  @keyframes slideRight {
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .policy-row h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--c-primary);
+  }
+  .policy-row .lvls {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .lvl {
+    background: linear-gradient(135deg, #eaf2ff, #f7faff);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--c-border);
+    text-align: center;
+  }
+  .lvl .lv-tag {
+    display: inline-block;
+    background: var(--c-primary);
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .lvl .lv-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .lvl .lv-desc { font-size: 11px; color: var(--c-text-soft); line-height: 1.5; }
+  .policy-row .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .policy-row .pair .pair-item {
+    background: #f7faff;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-left: 3px solid var(--c-accent);
+  }
+  .policy-row .pair .pair-item b { color: var(--c-accent-dark); }
+  .policy-row .timeline {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .policy-row .tl-item {
+    flex: 1;
+    background: #f0fbf8;
+    border-left: 3px solid var(--c-teal);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .policy-row .tl-item .tl-date { font-weight: 700; color: var(--c-teal); margin-right: 8px; }
+  .policy-row.insight {
+    color: var(--c-text);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.7;
+  }
+  .policy-row.insight b { color: var(--c-accent-dark); }
+
+  /* ==================== 自研派系（slide 7）==================== */
+  .factions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    flex: 1;
+    align-content: center;
+  }
+  .faction {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    border-top: 6px solid;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.4s ease;
+  }
+  .slide.active .faction { animation: cardPop 0.6s ease forwards; }
+  .slide.active .faction:nth-child(1) { animation-delay: 0.1s; border-top-color: var(--c-primary); }
+  .slide.active .faction:nth-child(2) { animation-delay: 0.25s; border-top-color: var(--c-teal); }
+  .slide.active .faction:nth-child(3) { animation-delay: 0.4s; border-top-color: var(--c-pink); }
+  .slide.active .faction:nth-child(4) { animation-delay: 0.55s; border-top-color: var(--c-yellow); }
+  .faction:hover { transform: translateY(-6px) scale(1.02); box-shadow: var(--shadow-lg); }
+  .faction .fac-tag {
+    font-size: 12px;
+    color: var(--c-text-soft);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .faction .fac-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .faction .fac-brand {
+    font-size: 14px;
+    color: var(--c-primary);
+    font-weight: 700;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--c-border);
+  }
+  .faction .fac-arch {
+    font-size: 12px;
+    color: var(--c-text-soft);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .faction .fac-arch-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--c-text);
+    background: #f0f6ff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+  }
+  .faction .fac-points li {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--c-text);
+    list-style: none;
+    padding-left: 18px;
+    position: relative;
+    margin-bottom: 5px;
+  }
+  .faction .fac-points li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--c-accent);
+    font-weight: 700;
+  }
+
+  /* ==================== 通用表格 ==================== */
+  .grid-table {
+    display: grid;
+    gap: 14px;
+    flex: 1;
+    align-content: center;
+    overflow: auto;
+    padding: 4px;
+  }
+  .row-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: var(--shadow-sm);
+    display: grid;
+    gap: 14px;
+    align-items: center;
+    border-left: 4px solid var(--c-primary);
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  .slide.active .row-card { animation: slideRight 0.5s ease forwards; }
+  .slide.active .row-card:nth-child(1) { animation-delay: 0.1s; }
+  .slide.active .row-card:nth-child(2) { animation-delay: 0.2s; }
+  .slide.active .row-card:nth-child(3) { animation-delay: 0.3s; }
+  .slide.active .row-card:nth-child(4) { animation-delay: 0.4s; }
+  .slide.active .row-card:nth-child(5) { animation-delay: 0.5s; }
+  .slide.active .row-card:nth-child(6) { animation-delay: 0.6s; }
+  .slide.active .row-card:nth-child(7) { animation-delay: 0.7s; }
+  .row-card .col-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--c-primary);
+  }
+  .row-card .col-partner {
+    font-size: 14px;
+    color: var(--c-text-soft);
+    line-height: 1.6;
+  }
+  .row-card .col-feature {
+    font-size: 13.5px;
+    color: var(--c-text);
+    line-height: 1.7;
+  }
+  .row-card .col-feature b { color: var(--c-accent-dark); }
+  .row-card.l-blue { border-left-color: var(--c-primary); }
+  .row-card.l-orange { border-left-color: var(--c-accent); }
+  .row-card.l-teal { border-left-color: var(--c-teal); }
+  .row-card.l-purple { border-left-color: var(--c-purple); }
+  .row-card.l-pink { border-left-color: var(--c-pink); }
+
+  /* ==================== 能力矩阵 ==================== */
+  .matrix {
+    display: grid;
+    grid-template-columns: 130px repeat(3, 1fr);
+    gap: 8px;
+    flex: 1;
+    align-content: start;
+    overflow: auto;
+    padding: 4px;
+  }
+  .matrix-cell ul li { padding-left: 11px; margin-bottom: 1px; }
+  /* 多行矩阵紧凑模式 */
+  .matrix.dense .matrix-cell { padding: 8px 11px; font-size: 13px; line-height: 1.5; }
+  .matrix.dense .matrix-cell.label { font-size: 13.5px; }
+  .matrix.dense { gap: 6px; }
+
+  /* ==================== 矩阵：富化卡片版 ==================== */
+  .matrix-banner {
+    background: linear-gradient(135deg, #fff8f1, #ffe5d0);
+    border-radius: 12px;
+    padding: 12px 22px;
+    border-left: 5px solid var(--c-accent);
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--c-text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .matrix-banner .mb-icon { font-size: 26px; flex-shrink: 0; }
+  .matrix-banner b { color: var(--c-accent-dark); }
+
+  .matrix-cell.label-rich {
+    background: linear-gradient(135deg, var(--row-c1, #eaf2ff), var(--row-c2, #f7faff));
+    border-left: 4px solid var(--row-cmain, var(--c-primary));
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+    padding: 10px 12px;
+  }
+  .matrix-cell.label-rich .lr-emoji { font-size: 26px; line-height: 1; }
+  .matrix-cell.label-rich .lr-name { font-size: 14.5px; font-weight: 700; color: var(--row-cmain, var(--c-primary)); }
+
+  /* 行主题色 */
+  .row-blue   { --row-c1:#e7f0ff; --row-c2:#f7faff; --row-cmain:#2b6ee8; }
+  .row-teal   { --row-c1:#e2f7f1; --row-c2:#f1fbf8; --row-cmain:#15bfa2; }
+  .row-purple { --row-c1:#efe7fe; --row-c2:#f8f3ff; --row-cmain:#8b5cf6; }
+  .row-pink   { --row-c1:#fde4ed; --row-c2:#fdf1f6; --row-cmain:#ec4899; }
+  .row-orange { --row-c1:#ffe5d0; --row-c2:#fff3e8; --row-cmain:#ff7a3d; }
+  .row-yellow { --row-c1:#fff5cc; --row-c2:#fffbe5; --row-cmain:#d4a300; }
+  .row-cyan   { --row-c1:#d6f5fb; --row-c2:#eafafe; --row-cmain:#0aa3c2; }
+
+  /* tag pill 样式（matrix 富化版） */
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-content: flex-start;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    line-height: 1.4;
+    border: 1px solid transparent;
+  }
+  .tag.now { background: #e7f8f3; color: #0e8b75; border-color: rgba(21,191,162,0.3); }
+  .tag.lim { background: #fde4ed; color: #be255d; border-color: rgba(236,72,153,0.25); }
+  .tag.opt { background: #fff3e8; color: var(--c-accent-dark); border-color: rgba(255,122,61,0.3); }
+  .matrix.dense .tag { font-size: 11.5px; padding: 3px 8px; }
+  .matrix.rich .matrix-cell { background: #fff; padding: 11px 13px; }
+  .matrix.rich .matrix-h .h-icon { display: inline-block; margin-right: 6px; font-size: 16px; }
+  /* 富化非紧凑模式：行均衡分布 */
+  .matrix.rich:not(.dense) { align-content: space-evenly; gap: 14px; }
+  .matrix.rich:not(.dense) .matrix-cell { padding: 16px 18px; }
+  .matrix.rich:not(.dense) .matrix-cell.label-rich { padding: 14px 12px; }
+  .matrix.rich:not(.dense) .tag { font-size: 13.5px; padding: 5px 12px; }
+  .matrix-h {
+    background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dark));
+    color: #fff;
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    text-align: center;
+  }
+  .matrix-row {
+    display: contents;
+  }
+  .matrix-cell {
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    line-height: 1.55;
+    box-shadow: var(--shadow-sm);
+    border-left: 3px solid transparent;
+  }
+  .matrix-cell.label {
+    background: linear-gradient(135deg, #eaf2ff, #f7faff);
+    font-weight: 700;
+    text-align: center;
+    color: var(--c-primary);
+    font-size: 14.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left-color: var(--c-primary);
+  }
+  .matrix-cell.now { border-left-color: var(--c-teal); }
+  .matrix-cell.lim { border-left-color: var(--c-pink); background: #fff7fa; }
+  .matrix-cell.opt { border-left-color: var(--c-accent); background: #fff8f1; }
+  .matrix-cell ul li { list-style: none; padding-left: 12px; position: relative; margin-bottom: 3px; }
+  .matrix-cell ul li::before { content: '·'; position: absolute; left: 4px; font-weight: 900; }
+
+  /* ==================== 场景对比双栏 ==================== */
+  .scene-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    flex: 1;
+    align-content: stretch;
+  }
+  .scene-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 26px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    opacity: 0;
+    transform: translateY(20px);
+    border-top: 6px solid var(--c-primary);
+  }
+  .slide.active .scene-card { animation: cardPop 0.6s ease forwards; }
+  .slide.active .scene-card:nth-child(1) { animation-delay: 0.1s; }
+  .slide.active .scene-card:nth-child(2) { animation-delay: 0.3s; border-top-color: var(--c-accent); }
+  .scene-card h3 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--c-text);
+  }
+  .scene-card .sub {
+    font-size: 13px;
+    color: var(--c-text-soft);
+    margin-top: -8px;
+    margin-bottom: 4px;
+  }
+  .scene-card .sec {
+    background: #f7faff;
+    border-radius: 10px;
+    padding: 14px 16px;
+    border-left: 4px solid var(--c-primary);
+  }
+  .scene-card .sec.now { border-left-color: var(--c-teal); background: #f0fbf8; }
+  .scene-card .sec.lim { border-left-color: var(--c-pink); background: #fff7fa; }
+  .scene-card .sec.opt { border-left-color: var(--c-accent); background: #fff8f1; }
+  .scene-card .sec h4 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .scene-card .sec.now h4 { color: var(--c-teal); }
+  .scene-card .sec.lim h4 { color: var(--c-pink); }
+  .scene-card .sec.opt h4 { color: var(--c-accent-dark); }
+  .scene-card .sec ul li {
+    list-style: none;
+    padding-left: 16px;
+    position: relative;
+    font-size: 14.5px;
+    line-height: 1.8;
+  }
+  .scene-card .sec ul li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: inherit;
+    opacity: 0.6;
+  }
+
+  /* ==================== 共性问题 ==================== */
+  .pain-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+    flex: 1;
+    align-content: center;
+  }
+  .pain {
+    background: linear-gradient(135deg, #fff, #fff8f1);
+    border-radius: 14px;
+    padding: 24px 20px;
+    box-shadow: var(--shadow-sm);
+    border-top: 5px solid var(--c-accent);
+    position: relative;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .slide.active .pain { animation: cardPop 0.5s ease forwards; }
+  .slide.active .pain:nth-child(1) { animation-delay: 0.1s; }
+  .slide.active .pain:nth-child(2) { animation-delay: 0.2s; }
+  .slide.active .pain:nth-child(3) { animation-delay: 0.3s; }
+  .slide.active .pain:nth-child(4) { animation-delay: 0.4s; }
+  .slide.active .pain:nth-child(5) { animation-delay: 0.5s; }
+  .pain .num {
+    position: absolute;
+    top: -16px;
+    right: 14px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--c-accent), var(--c-accent-dark));
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(255,122,61,0.4);
+  }
+  .pain h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--c-text);
+    line-height: 1.45;
+  }
+  .pain .root {
+    font-size: 13px;
+    color: var(--c-text-soft);
+    line-height: 1.7;
+    background: #fff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px dashed var(--c-border);
+  }
+  .pain .root b { color: var(--c-accent-dark); }
+
+  /* ==================== 用户细分 ==================== */
+  .users-table {
+    display: grid;
+    grid-template-columns: 150px 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+    flex: 1;
+    align-content: stretch;
+    overflow: auto;
+    padding: 4px;
+  }
+  .users-table .user-cell { display: flex; align-items: center; padding: 18px 22px; font-size: 15px; }
+  .users-table .user-cell.name { font-size: 17px; }
+  .users-table .h {
+    background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dark));
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .user-row { display: contents; }
+  .user-cell {
+    background: #fff;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.7;
+    box-shadow: var(--shadow-sm);
+  }
+  .user-cell.name {
+    font-weight: 700;
+    font-size: 15px;
+    text-align: center;
+    background: linear-gradient(135deg, #fff8f1, #ffe5d0);
+    color: var(--c-accent-dark);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .insight-box {
+    background: linear-gradient(135deg, #ffe5d0, #fff8f1);
+    border-radius: 12px;
+    padding: 14px 20px;
+    border-left: 5px solid var(--c-accent);
+    font-size: 13.5px;
+    line-height: 1.8;
+  }
+  .insight-box b { color: var(--c-accent-dark); }
+
+  /* ==================== 用户行为 ==================== */
+  .behavior {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    flex: 1;
+  }
+  .beh-left { display: flex; flex-direction: column; gap: 14px; }
+  .beh-stat {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: var(--shadow-sm);
+    border-left: 5px solid var(--c-primary);
+  }
+  .beh-stat .h {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--c-primary);
+    margin-bottom: 10px;
+  }
+  .beh-stat .h .badge {
+    display: inline-block;
+    background: var(--c-primary);
+    color: #fff;
+    width: 22px; height: 22px;
+    line-height: 22px;
+    border-radius: 50%;
+    text-align: center;
+    margin-right: 8px;
+    font-size: 12px;
+  }
+  .beh-stat .body { font-size: 15px; line-height: 1.85; color: var(--c-text); }
+  /* 用户细分页底部合并的3个统计点：3列横排 */
+  .beh-row-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 4px;
+  }
+  .beh-row-3 .beh-stat { padding: 14px 18px; }
+  .beh-row-3 .beh-stat .h { font-size: 14.5px; margin-bottom: 8px; }
+  .beh-row-3 .beh-stat .body { font-size: 13.5px; line-height: 1.7; }
+  .beh-stat .body b { color: var(--c-accent-dark); }
+  .pie-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .bar .label { width: 110px; color: var(--c-text-soft); }
+  .bar .track { flex: 1; height: 14px; background: #eef3fb; border-radius: 7px; overflow: hidden; }
+  .bar .fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--c-primary), var(--c-accent));
+    border-radius: 7px;
+    width: 0;
+    animation: fillBar 1.4s cubic-bezier(0.22,1,0.36,1) forwards;
+  }
+  @keyframes fillBar {
+    from { width: 0; }
+  }
+  .stage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .stage {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: var(--shadow-sm);
+    border-left: 5px solid var(--c-teal);
+  }
+  .stage:nth-child(2) { border-left-color: var(--c-pink); }
+  .stage:nth-child(3) { border-left-color: var(--c-purple); }
+  .stage h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--c-text); }
+  .stage p { font-size: 14px; line-height: 1.7; color: var(--c-text-soft); margin-bottom: 5px; }
+  .stage .arrow { font-size: 13.5px; color: var(--c-accent-dark); font-weight: 700; }
+
+  /* ==================== 痛点（6项） ==================== */
+  .pain6 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    flex: 1;
+    align-content: center;
+  }
+  .pain6 .pain { padding: 18px 20px; }
+
+  /* ==================== 商业模式 ==================== */
+  .biz-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: 1fr 1fr;
+    gap: 20px;
+    flex: 1;
+  }
+  .biz {
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px 26px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    transform: scale(0.95);
+    border-top: 6px solid var(--c-primary);
+  }
+  .slide.active .biz { animation: cardPop 0.6s ease forwards; }
+  .slide.active .biz:nth-child(1) { animation-delay: 0.1s; border-top-color: var(--c-primary); }
+  .slide.active .biz:nth-child(2) { animation-delay: 0.25s; border-top-color: var(--c-accent); }
+  .slide.active .biz:nth-child(3) { animation-delay: 0.4s; border-top-color: var(--c-teal); }
+  .slide.active .biz:nth-child(4) { animation-delay: 0.55s; border-top-color: var(--c-purple); }
+  .biz .biz-tag {
+    font-size: 22px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .biz .biz-sub { font-size: 13px; color: var(--c-text-soft); }
+  .biz .biz-models {
+    font-size: 14.5px;
+    line-height: 1.8;
+    background: #f7faff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: var(--c-text);
+  }
+  .biz .biz-cases {
+    font-size: 13px;
+    color: var(--c-accent-dark);
+    margin-top: auto;
+    font-style: italic;
+  }
+  .biz .biz-sub { font-size: 14px !important; }
+  .biz-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 4px 0; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 16px;
+    background: linear-gradient(135deg, #fff8f1, #ffe5d0); color: var(--c-accent-dark); font-size: 12.5px; font-weight: 600;
+    border: 1px solid rgba(255,122,61,0.25); }
+  .chip .chip-icon { font-size: 14px; }
+  .biz:nth-child(1) .chip { background: linear-gradient(135deg, #eaf2ff, #cfe1ff); color: var(--c-primary-dark); border-color: rgba(43,110,232,0.25); }
+  .biz:nth-child(3) .chip { background: linear-gradient(135deg, #e7f8f3, #c9efe3); color: #0e8b75; border-color: rgba(21,191,162,0.3); }
+  .biz:nth-child(4) .chip { background: linear-gradient(135deg, #f3eafe, #dec8fd); color: #6d3ec4; border-color: rgba(139,92,246,0.3); }
+  .biz-vibe {
+    font-size: 13px; color: var(--c-text);
+    background: rgba(255,255,255,0.6);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border-left: 3px solid var(--c-accent);
+    line-height: 1.6;
+  }
+  .biz-vibe b { color: var(--c-accent-dark); }
+
+  /* ==================== 总结页 ==================== */
+  .conclude-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: 1fr 1fr;
+    gap: 22px;
+    flex: 1;
+  }
+  .conclude {
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px 26px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-left: 6px solid var(--c-primary);
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  .slide.active .conclude { animation: slideRight 0.6s ease forwards; }
+  .slide.active .conclude:nth-child(1) { animation-delay: 0.1s; border-left-color: var(--c-primary); }
+  .slide.active .conclude:nth-child(2) { animation-delay: 0.25s; border-left-color: var(--c-accent); }
+  .slide.active .conclude:nth-child(3) { animation-delay: 0.4s; border-left-color: var(--c-teal); }
+  .slide.active .conclude:nth-child(4) { animation-delay: 0.55s; border-left-color: var(--c-purple); }
+  .conclude h3 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .conclude p {
+    font-size: 15px;
+    line-height: 1.95;
+    color: var(--c-text);
+  }
+  .conclude p b { color: var(--c-accent-dark); }
+  .conc-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .conc-chip {
+    padding: 6px 14px; border-radius: 18px;
+    background: linear-gradient(135deg, #eaf2ff, #f7faff);
+    color: var(--c-primary-dark);
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--c-border);
+  }
+  .conclude:nth-child(2) .conc-chip { background: linear-gradient(135deg, #fff8f1, #ffe5d0); color: var(--c-accent-dark); border-color: rgba(255,122,61,0.25); }
+  .conclude:nth-child(3) .conc-chip { background: linear-gradient(135deg, #e7f8f3, #c9efe3); color: #0e8b75; border-color: rgba(21,191,162,0.3); }
+  .conclude:nth-child(4) .conc-chip { background: linear-gradient(135deg, #f3eafe, #dec8fd); color: #6d3ec4; border-color: rgba(139,92,246,0.3); }
+  .conc-quote {
+    margin-top: auto;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.55);
+    border-left: 3px solid var(--c-primary);
+    border-radius: 8px;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--c-text-soft);
+    font-style: italic;
+  }
+  .conclude:nth-child(2) .conc-quote { border-left-color: var(--c-accent); }
+  .conclude:nth-child(3) .conc-quote { border-left-color: var(--c-teal); }
+  .conclude:nth-child(4) .conc-quote { border-left-color: var(--c-purple); }
+
+  /* ==================== Thanks ==================== */
+  .thanks {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .thanks h1 {
+    font-size: 120px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 12px;
+    margin-bottom: 32px;
+    animation: fadeInUp 0.8s ease;
+  }
+  .thanks p {
+    font-size: 22px;
+    color: var(--c-text-soft);
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+  }
+  .thanks .footer-meta {
+    font-size: 14px;
+    color: var(--c-text-soft);
+    letter-spacing: 2px;
+    margin-top: 36px;
+  }
+
+  /* ==================== 产业链（原生 light 版） ==================== */
+  .chain-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: auto;
+    padding: 4px;
+  }
+  .chain-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr 1fr;
+    gap: 14px;
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  .slide.active .chain-row { animation: cardPop 0.55s ease forwards; }
+  .slide.active .chain-row:nth-child(1) { animation-delay: 0.10s; }
+  .slide.active .chain-row:nth-child(2) { animation-delay: 0.25s; }
+  .slide.active .chain-row:nth-child(3) { animation-delay: 0.40s; }
+  .chain-label {
+    border-radius: 14px;
+    padding: 18px 14px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+  }
+  .chain-label .cl-no { font-size: 13px; opacity: 0.85; letter-spacing: 3px; margin-bottom: 4px; }
+  .chain-label .cl-name { font-size: 26px; font-weight: 800; letter-spacing: 2px; margin-bottom: 4px; }
+  .chain-label .cl-en { font-size: 11px; opacity: 0.85; letter-spacing: 2px; }
+  .chain-row[data-layer="up"] .chain-label { background: linear-gradient(135deg, #5b9bd5, #2e5b8c); }
+  .chain-row[data-layer="mid"] .chain-label { background: linear-gradient(135deg, #2b6ee8, #1e4fb8); }
+  .chain-row[data-layer="down"] .chain-label { background: linear-gradient(135deg, #ff7a3d, #e55a1e); }
+
+  .chain-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--c-border);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+  }
+  .chain-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .chain-card .cc-tag {
+    font-size: 12px;
+    color: var(--c-primary);
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .chain-row[data-layer="down"] .chain-card .cc-tag { color: var(--c-accent-dark); }
+  .chain-card .cc-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--c-text);
+  }
+  .chain-card .cc-logos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 6px;
+    flex: 1;
+    align-content: flex-start;
+  }
+  .cc-logo {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+    white-space: nowrap;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 1px 3px rgba(0,0,0,0.18);
+  }
+  .cc-logo.qualcomm { background: #3253DC; }
+  .cc-logo.mediatek { background: #F37021; }
+  .cc-logo.horizon  { background: #D8232A; }
+  .cc-logo.baidu    { background: #2932E1; }
+  .cc-logo.huawei   { background: #CF0A2C; }
+  .cc-logo.iflytek  { background: #1A5FBF; }
+  .cc-logo.bytedance{ background: #6F3FF5; }
+  .cc-logo.alibaba  { background: #FF6A00; }
+  .cc-logo.aispeech { background: #16A085; }
+  .cc-logo.cerence  { background: #008996; }
+  .cc-logo.tencent  { background: #1296DB; }
+  .cc-logo.apple    { background: #555; }
+  .cc-logo.google   { background: linear-gradient(90deg,#4285F4,#34A853,#FBBC05,#EA4335); }
+  .cc-logo.amazon   { background: #232F3E; color: #FF9900; }
+  .cc-logo.tesla    { background: #CC0000; }
+  .cc-logo.desay    { background: #1A4FA0; }
+  .cc-logo.bosch    { background: #BC202E; }
+  .cc-logo.yiga     { background: #34495E; }
+  .cc-logo.qnx      { background: #000; }
+  .cc-logo.android  { background: #3DDC84; color: #1B1B1B; }
+  .cc-logo.harmony  { background: #C8161D; }
+  .cc-logo.alios    { background: #FF6A00; }
+  .cc-logo.blackberry { background: #1B1B1B; }
+  .cc-logo.volcano  { background: #E94B35; }
+  .cc-logo.neusoft  { background: #1565C0; }
+  .cc-logo.liauto   { background: #2C2C2C; }
+  .cc-logo.xpeng    { background: #00A0E9; }
+  .cc-logo.nio      { background: #00BCD4; color: #000; }
+  .cc-logo.xiaomi   { background: #FF6900; }
+  .cc-logo.aito     { background: #0E2C5E; }
+  .cc-logo.zeekr    { background: #1B1B1B; color: #C8A876; }
+  .cc-logo.gaode    { background: #06A7E2; }
+  .cc-logo.tmap     { background: #1296DB; }
+  .cc-logo.bdmap    { background: #2932E1; }
+  .chain-card .cc-note {
+    font-size: 11px;
+    color: var(--c-text-soft);
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--c-border);
+    font-style: italic;
+  }
+
+  .chain-summary {
+    background: linear-gradient(135deg, #fff8f1, #ffe5d0);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--c-text);
+    border-left: 5px solid var(--c-accent);
+    margin-top: 4px;
+  }
+  .chain-summary b { color: var(--c-accent-dark); }
+
+  /* ==================== 视频：整页视频幻灯片 ==================== */
+  .video-slide {
+    background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 50%, #fff5ee 100%);
+  }
+  .video-slide .video-stage {
+    flex: 1;
+    display: flex;
+    gap: 28px;
+    align-items: stretch;
+    min-height: 0;
+  }
+  .video-slide .video-frame {
+    flex: 2;
+    background: #000;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .video-slide .video-frame video,
+  .video-slide .video-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .video-slide .video-placeholder {
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    padding: 40px;
+  }
+  .video-slide .video-placeholder .ph-icon {
+    font-size: 64px;
+    margin-bottom: 18px;
+    opacity: 0.5;
+  }
+  .video-slide .video-placeholder .ph-tip {
+    font-size: 14px;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.5);
+  }
+  .video-slide .video-placeholder code {
+    background: rgba(255,255,255,0.12);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #ffb266;
+    font-size: 12px;
+  }
+  .video-slide .video-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px 4px;
+  }
+  .video-slide .video-info .v-tag {
+    font-size: 13px;
+    color: var(--c-accent);
+    font-weight: 700;
+    letter-spacing: 3px;
+  }
+  .video-slide .video-info .v-title {
+    font-size: 36px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.3;
+  }
+  .video-slide .video-info .v-desc {
+    font-size: 15px;
+    color: var(--c-text-soft);
+    line-height: 1.8;
+    background: #fff;
+    padding: 16px 18px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--c-primary);
+  }
+  .video-slide .video-info .v-edit-hint {
+    font-size: 12px;
+    color: var(--c-text-soft);
+    background: #fff8f1;
+    border: 1px dashed var(--c-accent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    line-height: 1.7;
+  }
+  .video-slide .video-info .v-edit-hint b { color: var(--c-accent-dark); }
+  .video-slide .video-info .v-edit-hint code {
+    background: #fff;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--c-primary);
+    font-size: 11px;
+  }
+
+  /* ==================== 视频：行内小按钮 ==================== */
+  .video-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    background: linear-gradient(135deg, var(--c-accent), var(--c-accent-dark));
+    color: #fff;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(255,122,61,0.3);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-family: inherit;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .video-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(255,122,61,0.45); }
+  .video-btn::before { content: '▶'; font-size: 9px; }
+
+  /* ==================== 视频：弹出模态框 ==================== */
+  .video-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 25, 50, 0.85);
+    z-index: 999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    backdrop-filter: blur(6px);
+  }
+  .video-modal.show { display: flex; animation: modalIn 0.3s ease; }
+  @keyframes modalIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .video-modal .modal-box {
+    background: #000;
+    width: 100%;
+    max-width: 1100px;
+    max-height: 82vh;
+    aspect-ratio: 16/9;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    transition: width 0.25s ease, height 0.25s ease, aspect-ratio 0.25s ease;
+  }
+  /* 竖屏视频：放弃 16:9，由视频自身宽高比决定盒子尺寸 */
+  .video-modal.portrait .modal-box {
+    width: auto;
+    aspect-ratio: var(--video-ratio, 9/16);
+    height: 82vh;
+    max-width: 60vw;
+  }
+  .video-modal .modal-title {
+    position: absolute;
+    top: -42px;
+    left: 0;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .video-modal .modal-close {
+    position: absolute;
+    top: -42px;
+    right: 0;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+  .video-modal .modal-close:hover { background: rgba(255,255,255,0.3); transform: rotate(90deg); }
+  .video-modal video,
+  .video-modal iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    object-fit: contain;
+    background: #000;
+  }
+  .video-modal .modal-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 40px;
+  }
+  .video-modal .modal-empty .em-icon { font-size: 80px; margin-bottom: 24px; opacity: 0.3; }
+  .video-modal .modal-empty .em-tip { font-size: 14px; line-height: 1.8; }
+  .video-modal .modal-empty code {
+    background: rgba(255,255,255,0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #ffb266;
+  }
+
+  /* ==================== 讨论页 ==================== */
+  .discuss-slide {
+    background:
+      radial-gradient(ellipse at 15% 20%, rgba(255, 122, 61, 0.18) 0%, transparent 45%),
+      radial-gradient(ellipse at 85% 75%, rgba(43, 110, 232, 0.18) 0%, transparent 45%),
+      linear-gradient(135deg, #fff8f1 0%, #ffffff 50%, #f0f6ff 100%);
+  }
+  .discuss-hero {
+    text-align: center;
+    margin: 0 auto 26px auto;
+    max-width: 900px;
+  }
+  .discuss-hero .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 22px;
+    background: linear-gradient(135deg, var(--c-accent), var(--c-accent-dark));
+    color: #fff;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    box-shadow: 0 6px 18px rgba(255,122,61,0.35);
+    margin-bottom: 18px;
+    animation: floatY 2.5s ease-in-out infinite;
+  }
+  .discuss-hero h1 {
+    font-size: 44px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+  .discuss-hero p {
+    font-size: 16px;
+    color: var(--c-text-soft);
+    letter-spacing: 1px;
+  }
+  @keyframes floatY {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .discuss-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    flex: 1;
+    align-content: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .q-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 30px 32px;
+    box-shadow: var(--shadow-md);
+    border-top: 6px solid var(--c-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .slide.active .q-card { animation: cardPop 0.7s ease forwards; }
+  .slide.active .q-card:nth-child(1) { animation-delay: 0.2s; }
+  .slide.active .q-card:nth-child(2) { animation-delay: 0.4s; border-top-color: var(--c-accent); }
+  .slide.active .q-card:nth-child(3) { animation-delay: 0.55s; border-top-color: var(--c-teal); }
+  .slide.active .q-card:nth-child(4) { animation-delay: 0.7s; border-top-color: var(--c-purple); }
+  .q-card::before {
+    content: '"';
+    position: absolute;
+    top: -30px;
+    right: 16px;
+    font-size: 160px;
+    font-weight: 900;
+    color: rgba(43, 110, 232, 0.08);
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+  .q-card .q-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+    color: #fff;
+    font-weight: 800;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(43,110,232,0.3);
+  }
+  .q-card .q-text {
+    font-size: 19px;
+    line-height: 1.7;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+  .q-card .q-hint {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px dashed var(--c-border);
+    font-size: 13px;
+    color: var(--c-text-soft);
+    font-style: italic;
+    line-height: 1.7;
+  }
+  .q-card .q-hint b { color: var(--c-accent-dark); }
+  /* 4 题紧凑模式 */
+  .discuss-slide.compact .discuss-hero { margin-bottom: 14px; }
+  .discuss-slide.compact .discuss-hero .badge { margin-bottom: 10px; padding: 6px 18px; font-size: 12px; }
+  .discuss-slide.compact .discuss-hero h1 { font-size: 32px; margin-bottom: 6px; }
+  .discuss-slide.compact .discuss-hero p { font-size: 14px; }
+  .discuss-slide.compact .discuss-grid { gap: 14px; }
+  .discuss-slide.compact .q-card { padding: 18px 22px; gap: 8px; border-top-width: 5px; border-radius: 14px; }
+  .discuss-slide.compact .q-card .q-num { width: 32px; height: 32px; font-size: 13px; }
+  .discuss-slide.compact .q-card .q-text { font-size: 16px; line-height: 1.55; }
+  .discuss-slide.compact .q-card .q-hint { font-size: 12px; padding-top: 8px; }
+  .discuss-slide.compact .q-card::before { font-size: 110px; top: -22px; }
+  .discuss-slide.compact .q-tag { font-size: 10.5px; padding: 2px 8px; }
+  .q-card .q-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .q-tag {
+    background: #f7faff;
+    color: var(--c-primary);
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--c-border);
+  }
+
+  /* ==================== 装饰：浮动背景形状（弱化） ==================== */
+  .deco-shapes {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .deco-shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.45;
+    filter: blur(40px);
+  }
+  .deco-shape.s1 { top: -80px; right: -60px; width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(255,122,61,0.35), transparent 70%);
+    animation: floatSlow 10s ease-in-out infinite; }
+  .deco-shape.s2 { bottom: 60px; left: -60px; width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(43,110,232,0.3), transparent 70%);
+    animation: floatSlow 14s ease-in-out infinite reverse; }
+  .deco-shape.s3 { top: 40%; left: 50%; width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(21,191,162,0.22), transparent 70%);
+    animation: floatSlow 12s ease-in-out infinite; }
+  @keyframes floatSlow {
+    0%, 100% { transform: translate(0,0); }
+    50% { transform: translate(30px, -20px); }
+  }
+  .slide > .header, .slide > .body, .slide > .badge, .slide > h1, .slide > .subtitle, .slide > .pills, .slide > .meta, .slide > p, .slide > .footer-meta { position: relative; z-index: 1; }
+
+  /* ==================== 数据气泡 / Stat Callout ==================== */
+  .stat-callout {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #fff, #fff8f1);
+    padding: 14px 22px;
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    border: 2px solid transparent;
+    position: relative;
+  }
+  .stat-callout.accent {
+    background: linear-gradient(135deg, var(--c-accent), var(--c-accent-dark));
+    color: #fff;
+  }
+  .stat-callout .stat-label { font-size: 11px; opacity: 0.8; letter-spacing: 1px; margin-bottom: 4px; }
+  .stat-callout .stat-value { font-size: 26px; font-weight: 800; line-height: 1; }
+
+  /* 派系卡片 hover 微动效增强 */
+  .faction { position: relative; overflow: hidden; }
+  .faction::after {
+    content: '';
+    position: absolute;
+    bottom: -50px;
+    right: -50px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,122,61,0.12), transparent 70%);
+    transition: transform 0.6s ease;
+    pointer-events: none;
+  }
+  .faction:hover::after { transform: scale(1.5); }
+
+  /* 关键数字脉动效果 */
+  .pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c-accent);
+    margin-right: 6px;
+    box-shadow: 0 0 0 0 rgba(255,122,61,0.7);
+    animation: pulseRing 1.6s infinite;
+  }
+  @keyframes pulseRing {
+    0% { box-shadow: 0 0 0 0 rgba(255,122,61,0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255,122,61,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,122,61,0); }
+  }
+
+  /* ==================== 滚动条 ==================== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ============ 1. 封面 ============ -->
+  <section class="slide active cover" data-title="封面">
+    <div class="deco-shapes">
+      <div class="deco-shape s1"></div>
+      <div class="deco-shape s2"></div>
+      <div class="deco-shape s3"></div>
+    </div>
+    <div class="badge">🚗 2026 年行业研究</div>
+    <h1>智能座舱语音<br />AI Agent 调研分享</h1>
+    <div class="subtitle">政策 · 产品 · 用户 · 商业模式 · 趋势</div>
+    <div class="pills">
+      <span class="pill">📜 政策背景</span>
+      <span class="pill">🚗 主流产品对标</span>
+      <span class="pill">👥 用户行为反馈</span>
+      <span class="pill">💰 商业模式</span>
+      <span class="pill">🎯 调研总结</span>
+    </div>
+    <div class="meta">谢茹月 / 解决方案产品 · 2026</div>
+  </section>
+
+  <!-- ============ 2. 目录 ============ -->
+  <section class="slide" data-title="目录">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">CONTENTS</span> 目录</span>
+      <h2>本次分享内容</h2>
+      <span class="page-no">02 / 21</span>
+    </div>
+    <div class="body">
+      <div class="toc-grid">
+        <div class="toc-card" onclick="goSlide(2)">
+          <div class="toc-num">01</div>
+          <div class="toc-title">📜 政策背景</div>
+          <div class="toc-desc">智能化分级 · 拟人化监管 · 产业支持</div>
+        </div>
+        <div class="toc-card" onclick="goSlide(3)">
+          <div class="toc-num">02</div>
+          <div class="toc-title">🚗 主流产品对标</div>
+          <div class="toc-desc">产业链 · 自研派系 · 第三方方案 · 能力矩阵 · 核心场景</div>
+        </div>
+        <div class="toc-card" onclick="goSlide(11)">
+          <div class="toc-num">03</div>
+          <div class="toc-title">👥 用户行为与反馈</div>
+          <div class="toc-desc">用户细分 · 使用行为 · 满意度与痛点</div>
+        </div>
+        <div class="toc-card" onclick="goSlide(14)">
+          <div class="toc-num">04</div>
+          <div class="toc-title">💰 商业模式</div>
+          <div class="toc-desc">B2C · B2B2C · B2B · 自建生态</div>
+        </div>
+        <div class="toc-card" onclick="goSlide(15)">
+          <div class="toc-num">05</div>
+          <div class="toc-title">🎯 调研总结</div>
+          <div class="toc-desc">核心结论</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 章节视频 · 01 政策背景 ============ -->
+  <section class="slide video-slide" data-title="章节视频 · 政策背景">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">01</span> 政策背景 · 视频</span>
+      <h2>政策动向视频解读</h2>
+      <span class="page-no">—</span>
+    </div>
+    <div class="body">
+      <div class="video-stage">
+        <div class="video-frame">
+          <video src="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E6%99%BA%E8%83%BD%E5%BA%A7%E8%88%B1%E6%94%BF%E7%AD%96.mov" controls preload="metadata"></video>
+        </div>
+        <div class="video-info">
+          <div class="v-tag">CHAPTER 01 · POLICY</div>
+          <div class="v-title">政策从「鼓励」<br />走向「分级 + 合规 + 测试」</div>
+          <div class="v-desc">围绕智能化分级、拟人化监管、产业支持三条主线，视频帮助快速理解政策走向与落地节点。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. 政策背景 ============ -->
+  <section class="slide" data-title="政策背景">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">01</span> 政策背景</span>
+      <h2>政策三大动向 · 智能化分级 / 拟人化监管 / 产业支持</h2>
+      <span class="page-no">03 / 21</span>
+    </div>
+    <div class="body">
+      <div class="policy-wrap">
+        <div class="policy-row">
+          <h3>① AI 终端智能化分级（GB/Z 177—2026，2026.05） —— 终结「伪智能」营销</h3>
+          <div class="lvls">
+            <div class="lvl"><span class="lv-tag">L1</span><div class="lv-name">响应级</div><div class="lv-desc">单一明确指令<br />如「打开空调」</div></div>
+            <div class="lvl"><span class="lv-tag">L2</span><div class="lv-name">工具级</div><div class="lv-desc">连贯复合指令<br />仍属被动响应</div></div>
+            <div class="lvl"><span class="lv-tag">L3</span><div class="lv-name">辅助级</div><div class="lv-desc">基于习惯主动服务<br />具备场景感知</div></div>
+            <div class="lvl"><span class="lv-tag">L4</span><div class="lv-name">协同级</div><div class="lv-desc">跨设备超级管家<br />动态修订完善</div></div>
+          </div>
+        </div>
+        <div class="policy-row">
+          <h3>② 拟人化互动服务管理（2026.04） —— 情感交互合规收紧</h3>
+          <div class="pair">
+            <div class="pair-item"><b>强制身份提醒：</b>显著标识 AI 交互，连用 &gt; 2h 弹窗</div>
+            <div class="pair-item"><b>未成年人保护：</b>禁向未成年人提供虚拟亲密关系；14 岁以下需监护人同意</div>
+          </div>
+        </div>
+        <div class="policy-row">
+          <h3>③ 产业支持与标准建设 —— 规范化竞争阶段</h3>
+          <div class="timeline">
+            <div class="tl-item"><span class="tl-date">2025.09</span>稳增长方案：推动智能网联技术产业化应用</div>
+            <div class="tl-item"><span class="tl-date">2026.05</span>工信部标准要点：推进座舱功能评价、触控交互等标准制定</div>
+          </div>
+        </div>
+        <div class="policy-row insight">
+          <b>洞察：</b>政策从「鼓励」走向「<b>分级 + 合规 + 测试</b>」三位一体，行业进入<b>规范化竞争阶段</b>。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 章节视频 · 02 主流产品对标（背景视频） ============ -->
+  <section class="slide video-slide" data-title="背景视频">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">02</span> 主流产品对标 · 背景视频</span>
+      <h2>产业链背景视频</h2>
+      <span class="page-no">—</span>
+    </div>
+    <div class="body">
+      <div class="video-stage">
+        <div class="video-frame">
+          <video src="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E8%83%8C%E6%99%AF.mov" controls preload="metadata"></video>
+        </div>
+        <div class="video-info">
+          <div class="v-tag">BACKGROUND VIDEO</div>
+          <div class="v-title">智能座舱语音<br />产业链全景导览</div>
+          <div class="v-desc">先用一段背景视频快速建立产业链上中下游的整体心智，再进入下一页的交互式动画详解。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. 产业链 —— 原生 light theme（已替换 iframe） ============ -->
+  <section class="slide" data-title="产业链">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">02</span> 主流产品对标</span>
+      <h2>🔗 智能座舱语音产业链 · 上游 / 中游 / 下游</h2>
+      <span class="page-no">04 / 21</span>
+    </div>
+    <div class="body">
+      <div class="chain-wrap">
+        <!-- 上游 -->
+        <div class="chain-row" data-layer="up">
+          <div class="chain-label">
+            <div class="cl-no">01</div>
+            <div class="cl-name">上游</div>
+            <div class="cl-en">BASIC TECH</div>
+          </div>
+          <div class="chain-card">
+            <div class="cc-tag">⚙️ 芯片 / 硬件</div>
+            <div class="cc-title">车载 NPU 算力</div>
+            <div class="cc-logos">
+              <span class="cc-logo qualcomm">高通 Qualcomm</span>
+              <span class="cc-logo mediatek">联发科</span>
+              <span class="cc-logo horizon">地平线</span>
+            </div>
+            <div class="cc-note">向舱驾融合演进</div>
+          </div>
+          <div class="chain-card">
+            <div class="cc-tag">🧠 大模型厂商</div>
+            <div class="cc-title">通用语言理解</div>
+            <div class="cc-logos">
+              <span class="cc-logo baidu">文心</span>
+              <span class="cc-logo huawei">盘古</span>
+              <span class="cc-logo iflytek">星火</span>
+              <span class="cc-logo bytedance">豆包</span>
+              <span class="cc-logo alibaba">千问</span>
+            </div>
+            <div class="cc-note">轻量化 + 多模态推理</div>
+          </div>
+          <div class="chain-card">
+            <div class="cc-tag">🎙️ 语音方案商</div>
+            <div class="cc-title">端到端语音交互</div>
+            <div class="cc-logos">
+              <span class="cc-logo huawei">华为</span>
+              <span class="cc-logo baidu">百度</span>
+              <span class="cc-logo iflytek">讯飞</span>
+              <span class="cc-logo tencent">腾讯</span>
+              <span class="cc-logo cerence">Cerence</span>
+              <span class="cc-logo apple">Siri</span>
+              <span class="cc-logo google">Gemini</span>
+              <span class="cc-logo amazon">Alexa</span>
+              <span class="cc-logo tesla">Tesla</span>
+            </div>
+            <div class="cc-note">车规级适配</div>
+          </div>
+        </div>
+
+        <!-- 中游 -->
+        <div class="chain-row" data-layer="mid">
+          <div class="chain-label">
+            <div class="cl-no">02</div>
+            <div class="cl-name">中游</div>
+            <div class="cl-en">PLATFORM</div>
+          </div>
+          <div class="chain-card">
+            <div class="cc-tag">🔧 座舱域控</div>
+            <div class="cc-title">软硬一体集成</div>
+            <div class="cc-logos">
+              <span class="cc-logo desay">德赛西威</span>
+              <span class="cc-logo bosch">博世</span>
+              <span class="cc-logo yiga">亿伽</span>
+            </div>
+            <div class="cc-note">从组装厂转型</div>
+          </div>
+          <div class="chain-card">
+            <div class="cc-tag">💻 操作系统</div>
+            <div class="cc-title">AI OS 跨硬件调用</div>
+            <div class="cc-logos">
+              <span class="cc-logo qnx">QNX</span>
+              <span class="cc-logo harmony">鸿蒙</span>
+              <span class="cc-logo alios">AliOS</span>
+            </div>
+            <div class="cc-note">打通应用与硬件</div>
+          </div>
+          <div class="chain-card">
+            <div class="cc-tag">🧩 AI 方案商</div>
+            <div class="cc-title">乐高式 API / SDK</div>
+            <div class="cc-logos">
+              <span class="cc-logo volcano">火山引擎</span>
+              <span class="cc-logo neusoft">东软睿驰</span>
+            </div>
+            <div class="cc-note">封装语音 / 视觉 / 大模型，降低接入门槛</div>
+          </div>
+        </div>
+
+        <!-- 下游 -->
+        <div class="chain-row" data-layer="down" style="grid-template-columns: 140px 2fr 1fr;">
+          <div class="chain-label">
+            <div class="cl-no">03</div>
+            <div class="cl-name">下游</div>
+            <div class="cl-en">APPLICATION</div>
+          </div>
+          <div class="chain-card">
+            <div class="cc-tag">🚗 整车厂自研</div>
+            <div class="cc-title">深度定制语音助手</div>
+            <div class="cc-logos">
+              <span class="cc-logo liauto">理想同学</span>
+              <span class="cc-logo xpeng">小鹏 小P</span>
+              <span class="cc-logo nio">蔚来 NOMI</span>
+              <span class="cc-logo xiaomi">小米 小爱</span>
+              <span class="cc-logo aito">问界 小艺</span>
+              <span class="cc-logo zeekr">极氪 Eva</span>
+            </div>
+            <div class="cc-note">与整车系统深度融合，形成差异化体验</div>
+          </div>
+          <div class="chain-card">
+            <div class="cc-tag">📱 第三方应用</div>
+            <div class="cc-title">高频交互入口</div>
+            <div class="cc-logos">
+              <span class="cc-logo gaode">高德</span>
+              <span class="cc-logo bdmap">百度地图</span>
+              <span class="cc-logo tmap">腾讯地图</span>
+            </div>
+            <div class="cc-note">导航 / POI / 路径规划</div>
+          </div>
+        </div>
+
+        <div class="chain-summary">
+          ✨ <b>三层协同</b>：上游供原料、中游做平台、下游交付体验。<b>竞争核心正从功能转向生态闭环能力。</b>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. 自研派系 ============ -->
+  <section class="slide" data-title="自研派系">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">02</span> 主流产品对标</span>
+      <h2>整车厂自研语音助手 · 四大派系</h2>
+      <span class="page-no">05 / 21</span>
+    </div>
+    <div class="body">
+      <div class="factions">
+        <div class="faction">
+          <div class="fac-tag">🔄 生态闭环</div>
+          <div class="fac-title">跨端流转派</div>
+          <div class="fac-brand">小米 · 小爱车载<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E5%B0%8F%E7%B1%B3%E5%B0%8F%E7%88%B1.mov" data-title="小米 小爱车载">视频</button></div>
+          <div class="fac-arch">底层架构</div>
+          <div class="fac-arch-val">澎湃 HyperOS + MiLM</div>
+          <ul class="fac-points">
+            <li>人车家全生态闭环</li>
+            <li>IoT 设备免密直控</li>
+            <li>分布式架构，手机算力 / 应用流挂载车端</li>
+          </ul>
+        </div>
+        <div class="faction">
+          <div class="fac-tag">👁️ 舱驾融合</div>
+          <div class="fac-title">物理感知派</div>
+          <div class="fac-brand">小鹏 小P<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E5%B0%8F%E9%B9%8F.mov" data-title="小鹏 小P">视频</button> · 理想 同学<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E7%90%86%E6%83%B3.mov" data-title="理想 同学">视频</button></div>
+          <div class="fac-arch">底层架构</div>
+          <div class="fac-arch-val">天玑 OS + VLM / 星环 OS + VLA</div>
+          <ul class="fac-points">
+            <li>VLM / VLA 读懂物理世界</li>
+            <li>智驾深耦合</li>
+            <li>多音区 + 具身智能</li>
+          </ul>
+        </div>
+        <div class="faction">
+          <div class="fac-tag">💝 情感交互</div>
+          <div class="fac-title">长程陪伴派</div>
+          <div class="fac-brand">蔚来 · NOMI<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E8%94%9A%E6%9D%A5.mov" data-title="蔚来 NOMI">视频</button></div>
+          <div class="fac-arch">底层架构</div>
+          <div class="fac-arch-val">SkyOS 天枢 + NOMIGPT</div>
+          <ul class="fac-points">
+            <li>实体化拟人</li>
+            <li>物理形态为中枢</li>
+            <li>跨周期长记忆</li>
+          </ul>
+        </div>
+        <div class="faction">
+          <div class="fac-tag">🛠️ 深度车控</div>
+          <div class="fac-title">极客派</div>
+          <div class="fac-brand">极氪 · Eva<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E6%9E%81%E6%B0%AA.mov" data-title="极氪 Eva">视频</button></div>
+          <div class="fac-arch">底层架构</div>
+          <div class="fac-arch-val">ZEEKR OS + KrAI 大模型</div>
+          <ul class="fac-points">
+            <li>聚焦驾控原子化</li>
+            <li>1000+ 原子级指令</li>
+            <li>悬架 / 动力 / 转向可调</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. 第三方·国内 ============ -->
+  <section class="slide" data-title="第三方·国内">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">02</span> 主流产品对标</span>
+      <h2>第三方方案 · 国内阵营</h2>
+      <span class="page-no">06 / 21</span>
+    </div>
+    <div class="body">
+      <div class="grid-table" style="grid-template-columns: 1fr;">
+        <div class="row-card l-blue" style="grid-template-columns: 160px 1.4fr 2fr;">
+          <div class="col-name">华为 小艺<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E5%8D%8E%E4%B8%BA%E5%B0%8F%E8%89%BA.mov" data-title="华为 小艺">视频</button></div>
+          <div class="col-partner">合作车企：<br />问界、智界、享界、阿维塔</div>
+          <div class="col-feature">底层架构：鸿蒙 HarmonyOS + 华为盘古大模型 + DeepSeek 技术融合<br /><b>系统级意图理解 + 主动服务预测</b>：具备深层 CAN 总线级车控权限；情感感知与主动提议</div>
+        </div>
+        <div class="row-card l-orange" style="grid-template-columns: 160px 1.4fr 2fr;">
+          <div class="col-name">百度<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E7%99%BE%E5%BA%A6%E5%B0%8F%E5%BA%A6.mov" data-title="百度">视频</button></div>
+          <div class="col-partner">合作车企：<br />吉利、奇瑞星途、福特锐界 ST</div>
+          <div class="col-feature">底层架构：文心大模型 + DuerOS 智能体平台 + 百度智能云车规级底座<br /><b>端云协同低延迟交互</b>：端侧大模型全双工对话；车手云跨端记忆体</div>
+        </div>
+        <div class="row-card l-teal" style="grid-template-columns: 160px 1.4fr 2fr;">
+          <div class="col-name">阿里 斑马智行<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E6%96%91%E9%A9%AC%E6%99%BA%E8%A1%8C.mov" data-title="阿里 斑马智行">视频</button></div>
+          <div class="col-partner">合作车企：<br />上汽、宝马、比亚迪</div>
+          <div class="col-feature">底层架构：AliOS 车载操作系统 + 通义千问大模型 + 阿里云车云一体底座<br /><b>原生生态车内自动办事</b>：支付宝 / 淘宝 / 高德深度内嵌；AliOS 系统级安全隔离</div>
+        </div>
+        <div class="row-card l-purple" style="grid-template-columns: 160px 1.4fr 2fr;">
+          <div class="col-name">腾讯 TAI<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E8%85%BE%E8%AE%AFTAI.mov" data-title="腾讯 TAI">视频</button></div>
+          <div class="col-partner">合作车企：<br />长安、广汽、吉利、长城</div>
+          <div class="col-feature">底层架构：腾讯混元大模型 + TAI 智能汽车解决方案 + 腾讯云车联网底座<br /><b>社交与内容生态无缝平移</b>：微信车载版，仅做内容与服务层</div>
+        </div>
+        <div class="row-card l-pink" style="grid-template-columns: 160px 1.4fr 2fr;">
+          <div class="col-name">科大讯飞 星火<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E7%A7%91%E5%A4%A7%E8%AE%AF%E9%A3%9E%E6%98%9F%E7%81%AB.mov" data-title="科大讯飞 星火">视频</button></div>
+          <div class="col-partner">合作车企：<br />奇瑞、长安、广汽、红旗、长城</div>
+          <div class="col-feature">底层架构：讯飞星火大模型 + 飞鱼智能座舱方案 + 自研车规级语音引擎<br /><b>极致声学 + 量产交付</b>：多音区识别与方言场景；高并发多意图解析</div>
+        </div>
+        <div class="row-card l-blue" style="grid-template-columns: 160px 1.4fr 2fr;">
+          <div class="col-name">地平线 KaKaClaw<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E5%9C%B0%E5%B9%B3%E7%BA%BF.mov" data-title="地平线 KaKaClaw">视频</button></div>
+          <div class="col-partner">合作车企：<br />iCAR、奇瑞、比亚迪合作意向</div>
+          <div class="col-feature">底层架构：KaKaClaw 整车智能体操作系统<br /><b>任务即服务的跨域交互</b>：端侧隐私与安全；零代码创建专属技能</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7. 第三方·国际 ============ -->
+  <section class="slide" data-title="第三方·国际">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">02</span> 主流产品对标</span>
+      <h2>第三方方案 · 国际阵营</h2>
+      <span class="page-no">07 / 21</span>
+    </div>
+    <div class="body">
+      <div class="grid-table" style="grid-template-columns: 1fr;">
+        <div class="row-card l-blue" style="grid-template-columns: 200px 1.4fr 2fr;">
+          <div class="col-name">Apple CarPlay (Siri)<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/siri%20carplay.mov" data-title="Apple CarPlay · Siri">视频</button></div>
+          <div class="col-partner">合作车企：<br />保时捷、本田、日产、现代</div>
+          <div class="col-feature">底层架构：iOS + Apple 自研大模型 + ChatGPT 能力接入 + CarPlay Ultra 映射框架<br /><b>手机生态全屏接管 + 极致隐私</b>：CarPlay Ultra 接管仪表与中控、端侧隐私优先架构</div>
+        </div>
+        <div class="row-card l-orange" style="grid-template-columns: 200px 1.4fr 2fr;">
+          <div class="col-name">Google Android Automotive<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/google.mov" data-title="Google Android Automotive">视频</button></div>
+          <div class="col-partner">合作车企：<br />沃尔沃、极星、雷诺、福特、通用、本田、日产</div>
+          <div class="col-feature">底层架构：Android Automotive OS + Gemini 大模型 + Google 原生服务<br /><b>海外 Android 车载绝对底座</b>：Gemini 多模态、开放应用生态与分区体验</div>
+        </div>
+        <div class="row-card l-teal" style="grid-template-columns: 200px 1.4fr 2fr;">
+          <div class="col-name">Tesla AI Agent<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E7%89%B9%E6%96%AF%E6%8B%89.mov" data-title="Tesla AI Agent">视频</button></div>
+          <div class="col-partner">合作车企：<br />特斯拉自用</div>
+          <div class="col-feature">底层架构：xAI Grok 大模型 + 特斯拉 AI4 自研芯片 + FSD 视觉栈端云协同<br /><b>极致减法的具身智能</b>：Grok + FSD 深度融合，驾驶数据自闭环学习</div>
+        </div>
+        <div class="row-card l-purple" style="grid-template-columns: 200px 1.4fr 2fr;">
+          <div class="col-name">Cerence<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/%E8%B5%9B%E8%BD%AE%E6%80%9D.mov" data-title="Cerence 赛轮思">视频</button></div>
+          <div class="col-partner">合作车企：<br />大众、宝马、奔驰、丰田、福特、上汽、吉利</div>
+          <div class="col-feature">底层架构：Cerence xUI 混合平台 + Cerence Chat Pro+ 自研车规级语音引擎<br /><b>全球多语种合规 + 车规适配</b>：GDPR 级数据合规能力 + 深厚车规协议适配经验</div>
+        </div>
+        <div class="row-card l-pink" style="grid-template-columns: 200px 1.4fr 2fr;">
+          <div class="col-name">Amazon Alexa Auto<button class="video-btn" data-video="https://github.com/XIE111456/cockpit-ai-videos/releases/download/v1.0/Alexa.mov" data-title="Amazon Alexa Auto">视频</button></div>
+          <div class="col-partner">合作车企：<br />宝马</div>
+          <div class="col-feature">底层架构：Alexa+ claude + AWS 云端算力 + Alexa Skills 生态<br /><b>车家互联能力优秀</b>：Echo 智能家居 + Prime 内容</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8. 基础语音能力 ============ -->
+  <section class="slide" data-title="基础语音能力">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">02</span> 主流产品对标</span>
+      <h2>产品能力（一）· 基础语音能力</h2>
+      <span class="page-no">08 / 21</span>
+    </div>
+    <div class="body">
+      <div class="matrix-banner">
+        <span class="mb-icon">🎙️</span>
+        <div><b>底层基本盘已稳，瓶颈集中在「多人 + 多模态 + 极端环境」</b>——头部车型在唤醒/降噪/定位上落地成熟，但身份切换与并发仍是难关。</div>
+      </div>
+      <div class="matrix rich">
+        <div class="matrix-h"><span class="h-icon">🧭</span>能力维度</div>
+        <div class="matrix-h"><span class="h-icon">✅</span>现状 / 头部落地</div>
+        <div class="matrix-h"><span class="h-icon">⚠️</span>主要局限</div>
+        <div class="matrix-h"><span class="h-icon">🚀</span>优化方向</div>
+
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-blue"><span class="lr-emoji">📣</span><span class="lr-name">唤醒能力</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">单一固定唤醒词</span><span class="tag now">四音区拾音覆盖</span><span class="tag now">多唤醒词自定义</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">复杂环境唤醒不稳</span><span class="tag lim">多人对话归属混淆</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">四音区独立并发</span><span class="tag opt">身份与语境联合判定</span></div></div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-teal"><span class="lr-emoji">🔇</span><span class="lr-name">降噪技术</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">多麦阵列</span><span class="tag now">深度学习降噪</span><span class="tag now">风 / 胎 / 引擎噪专项</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">极端噪音表现下降</span><span class="tag lim">语音 vs 音质难平衡</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">6 / 8 麦高级阵列</span><span class="tag opt">多模态噪声估计</span></div></div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-purple"><span class="lr-emoji">📍</span><span class="lr-name">声源定位</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">多音区识别</span><span class="tag now">360° 拾音</span><span class="tag now">四音区独立识别</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">后排识别率低于前排</span><span class="tag lim">多人并发意图混淆</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">定向语音增强</span><span class="tag opt">声纹绑定座位</span></div></div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-orange"><span class="lr-emoji">💬</span><span class="lr-name">多人 / 多轮</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">多轮对话</span><span class="tag now">智能打断初级形态</span><span class="tag now">区分前后排身份</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">复杂指令链丢失</span><span class="tag lim">身份切换仍粗糙</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">上下文 5–10 轮</span><span class="tag opt">意图槽位长记忆</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 9. 大模型赋能能力 ============ -->
+  <section class="slide" data-title="大模型赋能能力">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">02</span> 主流产品对标</span>
+      <h2>产品能力（二）· 大模型赋能能力</h2>
+      <span class="page-no">09 / 21</span>
+    </div>
+    <div class="body">
+      <div class="matrix-banner" style="padding:8px 18px;font-size:13.5px;margin-bottom:8px;">
+        <span class="mb-icon" style="font-size:22px;">🧠</span>
+        <div><b>大模型赋能 7 大维度：</b>从「会说话」走向「能办事」——多数能力已上车，但<b>记忆 / 协同 / 多模态融合</b>仍是体验拉开差距的关键。</div>
+      </div>
+      <div class="matrix rich dense" style="grid-template-columns: 130px repeat(3, 1fr);">
+        <div class="matrix-h"><span class="h-icon">🧭</span>能力维度</div>
+        <div class="matrix-h"><span class="h-icon">✅</span>现状 / 头部落地</div>
+        <div class="matrix-h"><span class="h-icon">⚠️</span>主要局限</div>
+        <div class="matrix-h"><span class="h-icon">🚀</span>优化方向</div>
+
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-blue"><span class="lr-emoji">🧩</span><span class="lr-name">任务自主拆解</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">一句指令多步操作</span><span class="tag now">任务优先级判断</span><span class="tag now">多任务并行 / 跨域</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">复杂拆解成功率不高</span><span class="tag lim">跨域协调困难</span><span class="tag lim">状态反馈不及时</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">任务可视化</span><span class="tag opt">优先级智能调整</span><span class="tag opt">错误恢复机制</span></div></div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-teal"><span class="lr-emoji">🔗</span><span class="lr-name">跨 APP 生态</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">导航 / 音乐 / 车控打通</span><span class="tag now">智能家居 / 生活服务</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">生态碎片化</span><span class="tag lim">应用适配成本高</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">隐私沙箱</span><span class="tag opt">场景化生态包</span></div></div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-purple"><span class="lr-emoji">🔔</span><span class="lr-name">主动智能</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">上车 / 节日问候</span><span class="tag now">路况 / 疲劳 / 充电 / 日程提醒</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">打扰率高</span><span class="tag lim">触发条件不准确</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">总开关 + 分类开关</span><span class="tag opt">勿扰时段设置</span></div></div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-pink"><span class="lr-emoji">🧠</span><span class="lr-name">记忆与个性化</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">单次会话偏好保持</span><span class="tag now">常用车控学习</span><span class="tag now">行程偏好记忆</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">跨会话短期记忆</span><span class="tag lim">容量有限 / 更新不及时</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">记忆自主优化</span><span class="tag opt">跨端记忆体</span></div></div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-cyan"><span class="lr-emoji">☁️</span><span class="lr-name">端云协同 / 离线</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">离线唤醒 / 基础车控</span><span class="tag now">端侧识别 / 轻量大模型</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">离线场景覆盖有限</span><span class="tag lim">端侧推理受算力制约</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">端云协同模型</span><span class="tag opt">增量更新</span><span class="tag opt">网络恢复自动同步</span></div></div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-orange"><span class="lr-emoji">👁️</span><span class="lr-name">多模态融合</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">语音 + 触摸</span><span class="tag now">语音 + 视觉 / HUD</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">停留在叠加</span><span class="tag lim">视觉 / 手势精度有限</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">AR-HUD 深度联动</span><span class="tag opt">视线 + 语音意图融合</span><span class="tag opt">触觉反馈</span></div></div>
+        </div>
+        <div class="matrix-row">
+          <div class="matrix-cell label-rich row-yellow"><span class="lr-emoji">💝</span><span class="lr-name">情感感知表达</span></div>
+          <div class="matrix-cell now"><div class="tag-list"><span class="tag now">多音色 / 基础语气</span><span class="tag now">虚拟形象 / 人设选择</span></div></div>
+          <div class="matrix-cell lim"><div class="tag-list"><span class="tag lim">情绪识别准确率低</span><span class="tag lim">人设切换不自然</span><span class="tag lim">情感与场景脱节</span></div></div>
+          <div class="matrix-cell opt"><div class="tag-list"><span class="tag opt">声纹自动匹配人设</span><span class="tag opt">自定义人设</span><span class="tag opt">情绪识别 + 共情回复</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 10. 通勤+长途 ============ -->
+  <section class="slide" data-title="通勤+长途">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">02</span> 主流产品对标</span>
+      <h2>核心场景（一）· 通勤 + 自驾长途</h2>
+      <span class="page-no">10 / 21</span>
+    </div>
+    <div class="body">
+      <div class="scene-pair">
+        <div class="scene-card">
+          <h3>🚦 通勤场景</h3>
+          <div class="sub">高频日常 · 体验感知最强</div>
+          <div class="sec now"><h4>2026 能力现状</h4><ul><li>早高峰路线优化、通勤模式自动激活</li><li>目的地自动识别、出发时间智能建议</li></ul></div>
+          <div class="sec lim"><h4>主要局限</h4><ul><li>用户偏好学习浅</li><li>跨系统服务断裂（导航 / 停车 / 早餐）</li></ul></div>
+          <div class="sec opt"><h4>优化方向</h4><ul><li>动态通勤规划 + 秒级重规划</li><li>通勤服务闭环（导航 → 停车 → 早餐）</li><li>通勤效率反馈</li></ul></div>
+        </div>
+        <div class="scene-card">
+          <h3>🛣️ 自驾长途</h3>
+          <div class="sub">低频高差异 · 体现 AI 上限</div>
+          <div class="sec now"><h4>2026 能力现状</h4><ul><li>长途路线规划、疲劳驾驶提醒</li><li>目的地深度信息、内容供给丰富</li></ul></div>
+          <div class="sec lim"><h4>主要局限</h4><ul><li>续航 / 充电规划不准</li><li>疲劳提醒方式单一</li><li>长时长内容编排弱</li></ul></div>
+          <div class="sec opt"><h4>优化方向</h4><ul><li>续航动态预测（多因素融合）</li><li>多模态疲劳缓解（按摩 + 香氛 + 冷风）</li><li>沿途场景与内容智能联动</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 11. 亲子+办公 ============ -->
+  <section class="slide" data-title="亲子+办公">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">02</span> 主流产品对标</span>
+      <h2>核心场景（二）· 亲子 + 办公协同</h2>
+      <span class="page-no">11 / 21</span>
+    </div>
+    <div class="body">
+      <div class="scene-pair">
+        <div class="scene-card">
+          <h3>👨‍👩‍👧 亲子乘车</h3>
+          <div class="sub">情感价值高 · 决策权重大</div>
+          <div class="sec now"><h4>2026 能力现状</h4><ul><li>儿童语音识别、动画 / 儿歌 / 故事推荐</li><li>后排安全提醒、亲子互动游戏</li></ul></div>
+          <div class="sec lim"><h4>主要局限</h4><ul><li>儿童语音准确率偏低</li><li>内容分龄粗糙、防沉迷弱</li><li>后排交互体验差</li></ul></div>
+          <div class="sec opt"><h4>优化方向</h4><ul><li>儿童声纹 + 分龄个性化服务</li><li>后排专属麦克风阵列</li><li>AR-HUD 后排屏亲子互动</li></ul></div>
+        </div>
+        <div class="scene-card">
+          <h3>💼 办公协同</h3>
+          <div class="sub">商务用户差异化场景</div>
+          <div class="sec now"><h4>2026 能力现状</h4><ul><li>语音会议（腾讯 / Zoom / 飞书）</li><li>日程同步、邮件读写、消息收发</li></ul></div>
+          <div class="sec lim"><h4>主要局限</h4><ul><li>办公应用车规适配浅</li><li>隐私安全风险高</li><li>办公与驾驶安全边界模糊</li></ul></div>
+          <div class="sec opt"><h4>优化方向</h4><ul><li>车载办公专属模式（端到端加密）</li><li>办公 - 驾驶智能平衡</li><li>跨端无缝接力</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 12. 平台级痛点 ============ -->
+  <section class="slide" data-title="平台级痛点">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">02</span> 主流产品对标</span>
+      <h2>跨场景共性问题 · 平台级痛点</h2>
+      <span class="page-no">12 / 21</span>
+    </div>
+    <div class="body">
+      <div class="pain-grid">
+        <div class="pain"><div class="num">1</div><h4>个性化推荐精度低</h4><div class="root"><b>根因：</b>车机端数据稀疏 + 跨端账号未打通 + 多数推荐仍是规则匹配</div></div>
+        <div class="pain"><div class="num">2</div><h4>主动服务打扰率难平衡</h4><div class="root"><b>根因：</b>触发置信度引擎不成熟 + 缺少用户侧频率精细控制</div></div>
+        <div class="pain"><div class="num">3</div><h4>断网 / 弱网体验降级明显</h4><div class="root"><b>根因：</b>端侧大模型部署仍是少数厂商能力</div></div>
+        <div class="pain"><div class="num">4</div><h4>多模态意图融合浅</h4><div class="root"><b>根因：</b>语音 + 视觉 + 触觉的真正融合尚未量产</div></div>
+        <div class="pain"><div class="num">5</div><h4>隐私合规与个性化的矛盾</h4><div class="root"><b>根因：</b>数据用得多则准、用得少则合规，平衡仍是难题</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 13. 用户细分 ============ -->
+  <section class="slide" data-title="用户细分">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">03</span> 用户行为与反馈</span>
+      <h2>目标用户细分</h2>
+      <span class="page-no">13 / 21</span>
+    </div>
+    <div class="body">
+      <div class="users-table">
+        <div class="h">用户群体</div>
+        <div class="h">核心需求</div>
+        <div class="h">语音交互偏好</div>
+
+        <div class="user-row">
+          <div class="user-cell name">🚦 通勤族</div>
+          <div class="user-cell">路线规划效率、实时避堵、红绿灯倒计时、快捷盲操</div>
+          <div class="user-cell">简短指令、全时免唤醒、毫秒级响应；拒绝冗长寒暄</div>
+        </div>
+        <div class="user-row">
+          <div class="user-cell name">🛣️ 长途自驾族</div>
+          <div class="user-cell">服务区 / 充电桩 / 景区推荐、疲劳干预、长周期预判</div>
+          <div class="user-cell">容忍多轮对话、自然交互与情感陪伴；接受适度主动推荐</div>
+        </div>
+        <div class="user-row">
+          <div class="user-cell name">👨‍👩‍👧 家庭用户</div>
+          <div class="user-cell">儿童乘车安全、多音区娱乐、多人不串扰、人设切换</div>
+          <div class="user-cell">4 / 6 音区精准识别；亲子友好音色</div>
+        </div>
+        <div class="user-row">
+          <div class="user-cell name">💼 商务用户</div>
+          <div class="user-cell">多端日程同步、车内速记、高效准时出行</div>
+          <div class="user-cell">任务式交互、信息整合；简洁专业、隐私严格</div>
+        </div>
+      </div>
+      <div class="insight-box" style="margin-bottom: 14px;">
+        <b>🔑 关键洞察：</b>
+        ・四类用户对「主动服务」容忍度差异极大：<b>长途族最高、商务族最低</b>
+        ・亲子和商务用户对「<b>隐私 + 多人协同</b>」的要求是质变的
+      </div>
+
+      <!-- 合并：用户使用行为 3 个统计点（去掉驾驶三阶段） -->
+      <div class="beh-row-3">
+        <div class="beh-stat">
+          <div class="h"><span class="badge">①</span>日均交互频次跃升 <span class="pulse-dot"></span></div>
+          <div class="body">活跃用户日均交互频次<b>显著提升</b> 📈，头部车型已实现<b>数量级跃升</b>，重度用户使用强度持续走高。</div>
+        </div>
+        <div class="beh-stat">
+          <div class="h"><span class="badge">②</span>场景分布：导航主导</div>
+          <div class="pie-bars">
+            <div class="bar"><div class="label">导航 / LBS</div><div class="track"><div class="fill" style="width: 70%; animation-delay: .2s"></div></div><div style="font-size:11px;color:var(--c-primary);font-weight:700;">主导</div></div>
+            <div class="bar"><div class="label">车控 + 影音</div><div class="track"><div class="fill" style="width: 45%; animation-delay: .4s"></div></div><div style="font-size:11px;color:var(--c-text-soft);">次之</div></div>
+            <div class="bar"><div class="label">生活生态 + 长尾</div><div class="track"><div class="fill" style="width: 22%; animation-delay: .6s"></div></div><div style="font-size:11px;color:var(--c-text-soft);">补充</div></div>
+          </div>
+        </div>
+        <div class="beh-stat">
+          <div class="h"><span class="badge">③</span>语音替代手动操作上升</div>
+          <div class="body">在「全时免唤醒 + 可见即可说」车型中，用户养成「<b>能动嘴绝不动手</b>」的舱内习惯。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 15. 用户痛点 ============ -->
+  <section class="slide" data-title="用户痛点">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">03</span> 用户行为与反馈</span>
+      <h2>用户主要痛点</h2>
+      <span class="page-no">15 / 21</span>
+    </div>
+    <div class="body">
+      <div class="pain6">
+        <div class="pain"><div class="num">1</div><h4>主动服务变成「主动打扰」</h4><div class="root">缺乏对用户空间和时间状态的预判，不合时宜弹出提醒</div></div>
+        <div class="pain"><div class="num">2</div><h4>懂语义但「办不成事」</h4><div class="root">可理解复杂长句，但缺乏外部工具链，流于幻觉闲聊</div></div>
+        <div class="pain"><div class="num">3</div><h4>弱网 / 断网体验不佳</h4><div class="root">依赖云端，进入地库、隧道、山区即无法解析复杂意图</div></div>
+        <div class="pain"><div class="num">4</div><h4>打断生硬与节奏错乱</h4><div class="root">智驾播报时难插入新指令，系统反应迟钝</div></div>
+        <div class="pain"><div class="num">5</div><h4>车控与生活服务联动不佳</h4><div class="root">说「我想去越野」只会导航到沙漠，不联动驾控模式</div></div>
+        <div class="pain"><div class="num">6</div><h4>个性化与记忆缺失</h4><div class="root">跨次行程偏好遗忘；多成员识别为同一人；人设断层</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 讨论页 2 · 用户维度（4题紧凑） ============ -->
+  <section class="slide discuss-slide compact" data-title="💭 讨论二">
+    <div class="deco-shapes">
+      <div class="deco-shape s1"></div>
+      <div class="deco-shape s2"></div>
+      <div class="deco-shape s3"></div>
+    </div>
+    <div class="header">
+      <span class="chapter-tag"><span class="num">DISCUSS</span> 讨论环节 · 二</span>
+      <h2>💭 切到用户视角，再聊聊</h2>
+      <span class="page-no">—</span>
+    </div>
+    <div class="body">
+      <div class="discuss-hero">
+        <div class="badge">🗣️ USER VOICE · 用户视角</div>
+        <h1>把方向盘交给乘客，<br />你最想问 AI 什么？</h1>
+        <p>从自己的真实使用场景出发，往往能撞出最锋利的洞察 ✨</p>
+      </div>
+      <div class="discuss-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="q-card">
+          <div class="q-num">1</div>
+          <div class="q-text">最近一次用车载语音，<br />是什么场景？体验如何？</div>
+          <div class="q-tags"><span class="q-tag">导航</span><span class="q-tag">车控</span><span class="q-tag">闲聊</span><span class="q-tag">音乐</span></div>
+          <div class="q-hint">💡 一句话描述：哪一刻让你觉得「真好用」或「真智障」？</div>
+        </div>
+        <div class="q-card">
+          <div class="q-num">2</div>
+          <div class="q-text">「能动嘴绝不动手」<br />你能接受这种交互习惯吗？</div>
+          <div class="q-tags"><span class="q-tag">免唤醒</span><span class="q-tag">语音优先</span><span class="q-tag">隐私</span></div>
+          <div class="q-hint">💡 想想旁边坐了同事 / 长辈 / 孩子时，你会用吗？</div>
+        </div>
+        <div class="q-card">
+          <div class="q-num">3</div>
+          <div class="q-text">「主动服务」与「主动打扰」<br />的边界在哪里？</div>
+          <div class="q-tags"><span class="q-tag">情境感知</span><span class="q-tag">勿扰</span></div>
+          <div class="q-hint">💡 哪类提醒你愿意被打断，哪类是反例？</div>
+        </div>
+        <div class="q-card">
+          <div class="q-num">4</div>
+          <div class="q-text">如果 AI 真懂你，<br />你愿意把多少数据交给它？</div>
+          <div class="q-tags"><span class="q-tag">个性化</span><span class="q-tag">数据合规</span></div>
+          <div class="q-hint">💡 行程 / 通讯录 / 支付 / 家庭成员 —— 哪条是底线？</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 16. 商业模式 ============ -->
+  <section class="slide" data-title="商业模式">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">04</span> 商业模式</span>
+      <h2>四类商业模式框架</h2>
+      <span class="page-no">16 / 21</span>
+    </div>
+    <div class="body">
+      <div class="biz-grid">
+        <div class="biz">
+          <div class="biz-tag">🛒 B2C</div>
+          <div class="biz-sub">车企 → 消费者</div>
+          <div class="biz-models">硬件预埋 + OTA 解锁　·　免费基础 + 会员高阶　·　内容订阅</div>
+          <div class="biz-chips">
+            <span class="chip"><span class="chip-icon">💎</span>付费订阅</span>
+            <span class="chip"><span class="chip-icon">🔓</span>OTA 解锁</span>
+            <span class="chip"><span class="chip-icon">📺</span>内容增值</span>
+          </div>
+          <div class="biz-vibe"><b>核心打法：</b>以硬件预埋为底，用 OTA 持续放大软件价值</div>
+          <div class="biz-cases">代表：特斯拉 FSD、蔚来 NOP+、QQ 音乐车版</div>
+        </div>
+        <div class="biz">
+          <div class="biz-tag">🤝 B2B2C</div>
+          <div class="biz-sub">生态分成 / 平台抽佣</div>
+          <div class="biz-models">充电 / 停车分成　·　生活服务分成　·　内容分成　·　应用商店</div>
+          <div class="biz-chips">
+            <span class="chip"><span class="chip-icon">⚡</span>充电分成</span>
+            <span class="chip"><span class="chip-icon">🅿️</span>停车分成</span>
+            <span class="chip"><span class="chip-icon">🎵</span>内容分成</span>
+            <span class="chip"><span class="chip-icon">🛍️</span>应用商店</span>
+          </div>
+          <div class="biz-vibe"><b>核心打法：</b>把车机当流量入口，平台对接商家与用户分账</div>
+          <div class="biz-cases">代表：蔚来 Power、捷停车、腾讯 / 网易音乐</div>
+        </div>
+        <div class="biz">
+          <div class="biz-tag">🏢 B2B</div>
+          <div class="biz-sub">供应商 → 车企</div>
+          <div class="biz-models">软件授权（License + 激活费）　·　大模型 Token 结算　·　数据变现</div>
+          <div class="biz-chips">
+            <span class="chip"><span class="chip-icon">📜</span>License 授权</span>
+            <span class="chip"><span class="chip-icon">🎯</span>Token 结算</span>
+            <span class="chip"><span class="chip-icon">📊</span>数据变现</span>
+          </div>
+          <div class="biz-vibe"><b>核心打法：</b>用规模化能力对接 N 家车企，赚的是技术中间费</div>
+          <div class="biz-cases">代表：Cerence、讯飞、思必驰、通义 / 文心车云</div>
+        </div>
+        <div class="biz">
+          <div class="biz-tag">🌐 自建生态</div>
+          <div class="biz-sub">车厂自建出行服务</div>
+          <div class="biz-models">自建充电网络　·　车主社区与生活方式品牌</div>
+          <div class="biz-chips">
+            <span class="chip"><span class="chip-icon">🔌</span>自建超充</span>
+            <span class="chip"><span class="chip-icon">🏘️</span>车主社区</span>
+            <span class="chip"><span class="chip-icon">🎨</span>生活方式品牌</span>
+          </div>
+          <div class="biz-vibe"><b>核心打法：</b>把车作为入口，重做用户出行 + 生活方式生态</div>
+          <div class="biz-cases">代表：蔚来 NIO Power / NIO House、特斯拉超充</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 17. 调研总结 ============ -->
+  <section class="slide" data-title="调研总结">
+    <div class="header">
+      <span class="chapter-tag"><span class="num">05</span> 调研总结</span>
+      <h2>核心结论</h2>
+      <span class="page-no">17 / 21</span>
+    </div>
+    <div class="body">
+      <div class="conclude-grid">
+        <div class="conclude">
+          <h3>✨ 用户体验层面</h3>
+          <p>对话自然度与理解能力<b>显著提升</b>，但满意度瓶颈已转向「<b>功能完成率</b>」与「<b>实用性</b>」。<br />
+          最集中痛点：跨域服务无闭环、弱网降级明显、主动服务打扰过多。</p>
+          <div class="conc-chips">
+            <span class="conc-chip">🎯 功能完成率</span>
+            <span class="conc-chip">🔗 跨域闭环</span>
+            <span class="conc-chip">📡 弱网降级</span>
+          </div>
+          <div class="conc-quote">"听得懂≠办得成 ——「最后一公里」决定满意度"</div>
+        </div>
+        <div class="conclude">
+          <h3>⚙️ 技术演进层面</h3>
+          <p><b>端云协同成熟度</b>成为厂商体验差距主要来源，端侧大模型仍是少数能力。<br />
+          多模态融合从概念走向落地，但多数仍停留在「<b>叠加</b>」而非「<b>协同</b>」。</p>
+          <div class="conc-chips">
+            <span class="conc-chip">☁️ 端云协同</span>
+            <span class="conc-chip">📱 端侧大模型</span>
+            <span class="conc-chip">👁️ 多模态协同</span>
+          </div>
+          <div class="conc-quote">"概念已普及，落地分水岭在「协同」二字"</div>
+        </div>
+        <div class="conclude">
+          <h3>🌐 生态与竞争层面</h3>
+          <p>跨行业服务（导航 / 停车 / 充电 / 餐饮 / IM）需<b>长期 BD</b>，单一车企难独立完成。<br />
+          具备生态资源的玩家（<b>华为、阿里、百度、小米</b>）在闭环层面具优势。</p>
+          <div class="conc-chips">
+            <span class="conc-chip">🏢 华为</span>
+            <span class="conc-chip">🛒 阿里</span>
+            <span class="conc-chip">🔍 百度</span>
+            <span class="conc-chip">📱 小米</span>
+          </div>
+          <div class="conc-quote">"竞争从功能比拼走向「生态闭环」的角力"</div>
+        </div>
+        <div class="conclude">
+          <h3>💝 用户偏好层面</h3>
+          <p>用户对「<b>实用价值</b>」关注高于「情感陪伴」。<br />
+          「<b>少而准</b>」正替代早期「多而暖」，对人设、推荐、主动服务策略均有影响。</p>
+          <div class="conc-chips">
+            <span class="conc-chip">🎯 少而准</span>
+            <span class="conc-chip">⚡ 实用价值</span>
+            <span class="conc-chip">🔕 不打扰</span>
+          </div>
+          <div class="conc-quote">"用户长大了 —— 比起被陪聊，更想被「办成事」"</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 讨论页 3 · 未来维度（移至总结后） ============ -->
+  <section class="slide discuss-slide" data-title="💭 讨论三">
+    <div class="deco-shapes">
+      <div class="deco-shape s1"></div>
+      <div class="deco-shape s2"></div>
+      <div class="deco-shape s3"></div>
+    </div>
+    <div class="header">
+      <span class="chapter-tag"><span class="num">DISCUSS</span> 讨论环节 · 三</span>
+      <h2>💭 把视野拉到 3 年后</h2>
+      <span class="page-no">—</span>
+    </div>
+    <div class="body">
+      <div class="discuss-hero">
+        <div class="badge">🚀 FUTURE · 趋势预判</div>
+        <h1>等下次再聊车载 AI，<br />我们会聊什么？</h1>
+        <p>大胆假设，谨慎求证 —— 把你的判断写在评论区一起对账 📝</p>
+      </div>
+      <div class="discuss-grid">
+        <div class="q-card">
+          <div class="q-num">1</div>
+          <div class="q-text">3 年后，整车厂自研  <br />vs 第三方方案，谁会胜出？</div>
+          <div class="q-tags"><span class="q-tag">小鹏理想</span><span class="q-tag">华为小艺</span><span class="q-tag">CarPlay</span><span class="q-tag">Cerence</span></div>
+          <div class="q-hint">💡 <b>提示：</b>从「数据闭环 / 用户规模 / 生态资源」三个维度判断</div>
+        </div>
+        <div class="q-card">
+          <div class="q-num">2</div>
+          <div class="q-text">座舱语音 Agent，会成为<br />汽车「新一代交互入口」吗？</div>
+          <div class="q-tags"><span class="q-tag">语音</span><span class="q-tag">手势</span><span class="q-tag">视线</span><span class="q-tag">屏幕</span></div>
+          <div class="q-hint">💡 <b>反方观点：</b>大屏 + 物理按键的退潮，未必意味着语音的胜利</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 18. Thanks ============ -->
+  <section class="slide thanks" data-title="THANKS">
+    <div class="deco-shapes">
+      <div class="deco-shape s1"></div>
+      <div class="deco-shape s2"></div>
+      <div class="deco-shape s3"></div>
+    </div>
+    <h1>THANKS</h1>
+    <p>🙌 感谢聆听 · 欢迎讨论与反馈</p>
+    <div style="display:flex;gap:16px;margin-top:30px;flex-wrap:wrap;justify-content:center;">
+      <span class="pill" style="font-size:14px;padding:10px 22px;">💬 现场提问</span>
+      <span class="pill" style="font-size:14px;padding:10px 22px;">🤝 会后深聊</span>
+    </div>
+    <div class="footer-meta">智能座舱语音 AI Agent 调研 · 2026</div>
+  </section>
+
+</div>
+
+<!-- ==================== 视频弹窗 ==================== -->
+<div class="video-modal" id="videoModal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">视频</div>
+    <button class="modal-close" onclick="closeVideoModal()">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- ==================== 导航控制 ==================== -->
+<div class="nav">
+  <div class="nav-left">
+    <span id="slideTitle">封面</span>
+    <span style="color:var(--c-border)">|</span>
+    <span><span id="curIdx">1</span> / <span id="totalIdx">18</span></span>
+  </div>
+  <div class="nav-mid" id="dots"></div>
+  <div class="nav-right">
+    <button class="btn" onclick="prev()">◀ 上一页</button>
+    <button class="btn primary" onclick="next()">下一页 ▶</button>
+  </div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0;
+
+  // 渲染圆点
+  const dotsHost = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('span');
+    d.className = 'dot';
+    d.onclick = () => goSlide(i);
+    dotsHost.appendChild(d);
+  });
+  document.getElementById('totalIdx').textContent = slides.length;
+
+  function update() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === cur));
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+    document.getElementById('curIdx').textContent = cur + 1;
+    document.getElementById('slideTitle').textContent = slides[cur].dataset.title || '';
+  }
+  function next() { if (cur < slides.length - 1) { cur++; update(); } }
+  function prev() { if (cur > 0) { cur--; update(); } }
+  function goSlide(i) { if (i >= 0 && i < slides.length) { cur = i; update(); } }
+
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'IFRAME') return;
+    if (document.getElementById('videoModal').classList.contains('show')) {
+      if (e.key === 'Escape') closeVideoModal();
+      return;
+    }
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    if (e.key === 'Home') { cur = 0; update(); }
+    if (e.key === 'End') { cur = slides.length - 1; update(); }
+  });
+
+  // ==================== 视频弹窗逻辑 ====================
+  // 点击 .video-btn 自动打开模态框播放对应视频
+  // 用法：<button class="video-btn" data-video="v2/xxx.mov" data-title="标题">视频</button>
+  // 在线视频用法：<button class="video-btn" data-video="https://www.youtube.com/embed/xxx" data-video-type="iframe" data-title="标题">视频</button>
+  function openVideoModal(src, title, type) {
+    const modal = document.getElementById('videoModal');
+    const content = document.getElementById('modalContent');
+    const modalBox = modal.querySelector('.modal-box');
+    document.getElementById('modalTitle').textContent = title || '视频';
+    // 重置方向状态
+    modal.classList.remove('portrait');
+    modalBox.style.removeProperty('--video-ratio');
+    if (!src) {
+      content.innerHTML = '<div class="modal-empty"><div class="em-icon">▶</div><div class="em-tip">尚未填入视频地址<br />在按钮上设置 <code>data-video="v2/xxx.mp4"</code></div></div>';
+    } else if (type === 'iframe') {
+      content.innerHTML = '<iframe src="' + src + '" allowfullscreen allow="autoplay; encrypted-media"></iframe>';
+    } else {
+      // URL-encode path segments to handle spaces & non-ASCII characters
+      const safeSrc = src.split('/').map(seg => encodeURIComponent(seg)).join('/');
+      content.innerHTML = '<video src="' + safeSrc + '" controls autoplay></video>';
+      // 视频元数据加载后，根据真实宽高比决定显示模式
+      const v = content.querySelector('video');
+      v.addEventListener('loadedmetadata', () => {
+        const w = v.videoWidth, h = v.videoHeight;
+        if (w && h && h > w) {
+          // 竖屏：盒子按视频比例 + 撑高 82vh
+          modalBox.style.setProperty('--video-ratio', w + '/' + h);
+          modal.classList.add('portrait');
+        }
+      }, { once: true });
+    }
+    modal.classList.add('show');
+  }
+  function closeVideoModal() {
+    const modal = document.getElementById('videoModal');
+    modal.classList.remove('show');
+    modal.classList.remove('portrait');
+    document.getElementById('modalContent').innerHTML = '';
+  }
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.video-btn');
+    if (btn) {
+      e.stopPropagation();
+      openVideoModal(btn.dataset.video, btn.dataset.title, btn.dataset.videoType);
+    }
+    if (e.target.id === 'videoModal') closeVideoModal();
+  });
+
+  update();
+</script>
+</body>
+</html>

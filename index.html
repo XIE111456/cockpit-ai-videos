@@ -1686,6 +1686,149 @@
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 3px; }
   ::-webkit-scrollbar-track { background: transparent; }
+  /* ==================== 手机端响应式 ==================== */
+  @media (max-width: 768px) {
+    html, body { font-size: 14px; overflow-y: auto; overflow-x: hidden; }
+    .slide {
+      padding: 16px 16px 70px 16px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 封面 */
+    .cover h1 { font-size: 32px; letter-spacing: 1px; }
+    .cover .subtitle { font-size: 14px; letter-spacing: 2px; margin-bottom: 30px; }
+    .cover .badge { font-size: 11px; letter-spacing: 2px; margin-bottom: 16px; }
+    .cover .pills { gap: 8px; margin-bottom: 30px; }
+    .cover .pill { padding: 6px 14px; font-size: 12px; }
+    .cover .meta { font-size: 12px; }
+
+    /* 页眉 */
+    .header { margin-bottom: 12px; padding-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+    .header h2 { font-size: 18px; }
+    .header .chapter-tag { font-size: 11px; }
+    .header .chapter-tag .num { font-size: 11px; padding: 3px 7px; }
+    .header .page-no { font-size: 11px; padding: 4px 10px; }
+
+    /* 导航条 */
+    .nav { height: 50px; padding: 0 12px; }
+    .nav .nav-left { font-size: 11px; gap: 8px; }
+    .nav .nav-mid { display: none; }
+    .nav .nav-right { gap: 6px; }
+    .btn { padding: 6px 12px; font-size: 12px; }
+
+    /* 目录网格 */
+    .toc-grid { grid-template-columns: 1fr !important; gap: 10px; }
+
+    /* 产业链 */
+    .chain-row { grid-template-columns: 1fr !important; gap: 10px; }
+    .chain-card { padding: 14px; }
+    .chain-card .cc-title { font-size: 14px; }
+    .chain-card .cc-logos { gap: 6px; }
+    .chain-card .cc-logo { font-size: 11px; padding: 4px 8px; }
+    .chain-card .cc-note { font-size: 11px; }
+
+    /* 自研四派系 */
+    .factions { grid-template-columns: 1fr !important; gap: 10px; }
+    .faction { padding: 14px; }
+    .faction .fac-title { font-size: 17px; }
+    .faction .fac-brand { font-size: 13px; }
+    .faction .fac-points li { font-size: 12px; }
+
+    /* 产品行卡片 */
+    .grid-table { gap: 8px; }
+    .row-card { grid-template-columns: 1fr !important; padding: 12px; gap: 8px; font-size: 13px; }
+    .row-card .col-name { font-size: 14px; }
+    .row-card .col-partner { font-size: 12px; }
+    .row-card .col-feature { font-size: 12px; }
+
+    /* 能力矩阵 */
+    .matrix { grid-template-columns: 1fr !important; gap: 6px; }
+    .matrix-row { grid-template-columns: 1fr !important; }
+    .matrix-h { grid-template-columns: 1fr !important; }
+    .matrix-cell { padding: 8px 10px; font-size: 12px; }
+    .matrix-cell.label { font-size: 12px; padding: 8px; }
+    .matrix-cell.label-rich { padding: 8px; }
+    .matrix-cell.label-rich .lr-name { font-size: 12px; }
+    .matrix-cell.label-rich .lr-emoji { font-size: 20px; }
+    .matrix-banner { padding: 10px 14px; font-size: 13px; }
+    .matrix-banner .mb-icon { font-size: 20px; }
+    .tag { font-size: 11px !important; padding: 3px 7px !important; }
+    .matrix.dense .matrix-cell { font-size: 12px; }
+
+    /* 场景卡片 */
+    .scene-cols { grid-template-columns: 1fr !important; gap: 10px; }
+
+    /* 痛点网格 */
+    .pain-grid { grid-template-columns: 1fr !important; gap: 8px; }
+
+    /* 用户细分 */
+    .seg-grid { grid-template-columns: 1fr !important; gap: 10px; }
+    .beh-row-3 { grid-template-columns: 1fr !important; gap: 8px; }
+    .beh-row-3 .beh-stat .h { font-size: 13px; }
+    .beh-row-3 .beh-stat .body { font-size: 12px; }
+
+    /* 商业模式 */
+    .biz-grid { grid-template-columns: 1fr !important; gap: 10px; }
+    .biz { padding: 14px; }
+    .biz .biz-tag { font-size: 12px; padding: 4px 10px; }
+    .biz .biz-sub { font-size: 12px !important; }
+    .biz .biz-models { font-size: 12px; }
+    .biz .biz-cases { font-size: 11px; }
+    .biz-vibe { padding: 12px 14px; font-size: 13px; }
+
+    /* 讨论页 */
+    .discuss-hero h1 { font-size: 24px; }
+    .discuss-hero p { font-size: 13px; }
+    .discuss-hero .badge { font-size: 11px; padding: 5px 14px; }
+    .discuss-grid { grid-template-columns: 1fr !important; gap: 10px; }
+    .q-card { padding: 14px 16px; }
+    .q-card .q-text { font-size: 14px; }
+    .q-card .q-hint { font-size: 11px; }
+    .q-card .q-num { width: 28px; height: 28px; font-size: 12px; }
+    .q-card::before { font-size: 80px !important; top: -16px !important; }
+    .discuss-slide.compact .discuss-hero h1 { font-size: 22px; }
+
+    /* 调研总结 */
+    .summary-grid { grid-template-columns: 1fr !important; gap: 10px; }
+
+    /* 致谢 */
+    .thanks h1 { font-size: 56px !important; }
+    .thanks .subtitle { font-size: 16px !important; }
+
+    /* 视频全屏幻灯片 */
+    .video-full-slide { padding: 12px 12px 70px 12px; }
+    .video-full-slide video { border-radius: 10px; }
+
+    /* 视频弹窗 */
+    .video-modal { padding: 16px; }
+    .video-modal .modal-box { max-width: 100%; border-radius: 10px; }
+    .video-modal .modal-title { font-size: 13px; top: -32px; }
+    .video-modal .modal-close { top: -32px; width: 28px; height: 28px; font-size: 15px; }
+    .video-modal.portrait .modal-box { max-width: 85vw; height: 70vh; }
+
+    /* 视频按钮 */
+    .video-btn { font-size: 11px; padding: 3px 8px; }
+
+    /* 洞察底条 */
+    .insight { font-size: 12px; padding: 10px 14px; }
+
+    /* 通用修复 */
+    .body { overflow-y: auto; }
+    [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  }
+
+  /* 中等屏幕（平板） */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .slide { padding: 32px 40px 80px 40px; }
+    .cover h1 { font-size: 52px; }
+    .header h2 { font-size: 22px; }
+    .factions { grid-template-columns: 1fr 1fr !important; }
+    .discuss-grid { grid-template-columns: 1fr 1fr !important; }
+    .biz-grid { grid-template-columns: 1fr 1fr !important; }
+    .chain-row { grid-template-columns: 1fr 1fr !important; }
+    .row-card { font-size: 13px; }
+  }
 </style>
 </head>
 <body>
@@ -2695,6 +2838,25 @@
     }
     if (e.target.id === 'videoModal') closeVideoModal();
   });
+
+  // ==================== 触摸滑动翻页 ====================
+  let touchStartX = 0, touchStartY = 0, touchEndX = 0;
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (document.getElementById('videoModal').classList.contains('show')) return;
+    touchEndX = e.changedTouches[0].screenX;
+    const touchEndY = e.changedTouches[0].screenY;
+    const diffX = touchStartX - touchEndX;
+    const diffY = Math.abs(touchStartY - touchEndY);
+    // 只在水平滑动幅度 > 50px 且大于垂直滑动时翻页
+    if (Math.abs(diffX) > 50 && Math.abs(diffX) > diffY) {
+      if (diffX > 0) next();
+      else prev();
+    }
+  }, { passive: true });
 
   update();
 </script>
